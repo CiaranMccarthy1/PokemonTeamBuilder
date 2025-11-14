@@ -7,6 +7,7 @@ namespace PokemonTeamBuilder
     {
 
         private readonly HttpClient _httpClient = new HttpClient();
+        private List<string> allPokemonNames = GetGen1Pokemon();
 
         public MainPage()
         {
@@ -38,6 +39,15 @@ namespace PokemonTeamBuilder
                 if (!string.IsNullOrEmpty(spriteUrl))
                 {
                     pokemonSprite.Source = spriteUrl;
+
+                    string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+
+                    string types = string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) ?? "N/A";
+
+                    pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
+                    pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
+                    pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
+                    pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
                 }
                 else
                 {
@@ -50,6 +60,8 @@ namespace PokemonTeamBuilder
             {
                 await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
             }
+
+            searchBar.Text = string.Empty;
         }
 
         private async Task<Pokemon> PokemonData(string name)
@@ -70,6 +82,75 @@ namespace PokemonTeamBuilder
 
             return pokemon;
         }
+
+        private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = e.NewTextValue.ToLower();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                suggestionListView.ItemsSource = null; 
+                suggestionListView.IsVisible = false;   
+                return;
+            }
+
+            var suggestions = allPokemonNames
+                              .Where(name => name.StartsWith(query))
+                              .Take(10)
+                              .ToList();
+
+            suggestionListView.IsVisible = suggestions.Count > 0;
+
+            suggestionListView.ItemsSource = suggestions;
+        }
+
+        private void suggestionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            if (e.SelectedItem == null)
+                return; 
+
+            string selectedPokemon = e.SelectedItem.ToString();
+
+            searchBar.Text = selectedPokemon;
+
+            OnSearchBarPressed(null, null);
+
+            suggestionListView.SelectedItem = null;
+        }
+
+
+        public static List<string> GetGen1Pokemon()
+        {
+            return new List<string>
+                {
+                    "bulbasaur","ivysaur","venusaur","charmander","charmeleon","charizard",
+                    "squirtle","wartortle","blastoise","caterpie","metapod","butterfree",
+                    "weedle","kakuna","beedrill","pidgey","pidgeotto","pidgeot",
+                    "rattata","raticate","spearow","fearow","ekans","arbok",
+                    "pikachu","raichu","sandshrew","sandslash","nidoran-f","nidorina",
+                    "nidoqueen","nidoran-m","nidorino","nidoking","clefairy","clefable",
+                    "vulpix","ninetales","jigglypuff","wigglytuff","zubat","golbat",
+                    "oddish","gloom","vileplume","paras","parasect","venonat","venomoth",
+                    "diglett","dugtrio","meowth","persian","psyduck","golduck","mankey",
+                    "primeape","growlithe","arcanine","poliwag","poliwhirl","poliwrath",
+                    "abra","kadabra","alakazam","machop","machoke","machamp","bellsprout",
+                    "weepinbell","victreebel","tentacool","tentacruel","geodude","graveler",
+                    "golem","ponyta","rapidash","slowpoke","slowbro","magnemite","magneton",
+                    "farfetchd","doduo","dodrio","seel","dewgong","grimer","muk","shellder",
+                    "cloyster","gastly","haunter","gengar","onix","drowzee","hypno","krabby",
+                    "kingler","voltorb","electrode","exeggcute","exeggutor","cubone","marowak",
+                    "hitmonlee","hitmonchan","lickitung","koffing","weezing","rhyhorn","rhydon",
+                    "chansey","tangela","kangaskhan","horsea","seadra","goldeen","seaking",
+                    "staryu","starmie","mr-mime","scyther","jynx","electabuzz","magmar",
+                    "pinsir","tauros","magikarp","gyarados","lapras","ditto","eevee",
+                    "vaporeon","jolteon","flareon","porygon","omanyte","omastar","kabuto",
+                    "kabutops","aerodactyl","snorlax","articuno","zapdos","moltres",
+                    "dratini","dragonair","dragonite","mewtwo","mew"
+            };
+        }
+
+
+
     }
 
 }

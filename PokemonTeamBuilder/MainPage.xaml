@@ -10,13 +10,40 @@
 
             <SearchBar x:Name="searchBar"
                    Placeholder="Search items..."
+                   TextChanged="searchBar_TextChanged"
                    SearchButtonPressed="OnSearchBarPressed"/>
+
+
+            <ListView x:Name="suggestionListView"
+              ItemSelected="suggestionListView_ItemSelected"
+              HeightRequest="100" 
+              IsVisible="True"/>
 
             <Image x:Name="pokemonSprite"
                WidthRequest="200"
                HeightRequest="200"
                HorizontalOptions="Center"
                VerticalOptions="Center" />
+
+            <Label x:Name="pokemonNameLabel"
+                   FontSize="15"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+
+            <Label x:Name="pokemonHeightLabel"
+                   FontSize="15"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+
+            <Label x:Name="pokemonWeightLabel"
+                   FontSize="15"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+
+            <Label x:Name="pokemonTypeLabel"
+                   FontSize="15"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
 
 
 
