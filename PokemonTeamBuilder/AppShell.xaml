@@ -4,11 +4,33 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:PokemonTeamBuilder"
-    Title="PokemonTeamBuilder">
+    Title="PokemonTeamBuilder"
+    Shell.FlyoutBehavior="Flyout">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <FlyoutItem Title="Teams" 
+                Icon="home"  
+                Route="TeamsRoute">
+        <ShellContent
+            Title="My Teams"
+            ContentTemplate="{DataTemplate local:TeamsPage}"
+            Route="TeamsPage" />
+    </FlyoutItem>
 
+    <FlyoutItem Title="Search" 
+                Icon="magnifyingglass"  
+                Route="SearchRoute">
+        <ShellContent
+            Title="Pokemon Search"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Settings"
+                Icon="gear"
+                Route="SettingsRoute">
+        <ShellContent
+            Title="App Settings"
+            ContentTemplate="{DataTemplate local:SettingsPage}"
+            Route="SettingsPage" />
+    </FlyoutItem>
 </Shell>
