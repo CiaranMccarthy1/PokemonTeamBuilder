@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PokemonTeamBuilder.Themes.LightTheme">
+
+    <!-- Colors -->
+    <Color x:Key="PrimaryColor">#8BC34A</Color>
+    <Color x:Key="SecondaryColor">#689F38</Color>
+    <Color x:Key="TertiaryColor">#C5E1A5</Color>
+    <Color x:Key="PageBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="FrameBackgroundColor">#F5F5F5</Color>
+    <Color x:Key="TextColor">#212121</Color>
+    <Color x:Key="SubTextColor">#757575</Color>
+    <Color x:Key="ShellBackgroundColor">#F0F0F0</Color>
+    <Color x:Key="ShellForegroundColor">#212121</Color>
+
+
+    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{StaticResource PageBackgroundColor}" />
+    </Style>
+
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+    </Style>
+
+    <Style TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource PrimaryColor}" />
+        <Setter Property="TextColor" Value="White" />
+    </Style>
+
+    <Style TargetType="Entry">
+        <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+    </Style>
+
+    <Style TargetType="BoxView">
+        <Setter Property="Color" Value="{StaticResource SubTextColor}" />
+    </Style>
+
+</ResourceDictionary>
