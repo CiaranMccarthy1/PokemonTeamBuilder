@@ -163,7 +163,7 @@ namespace PokemonTeamBuilder
             }
         }
 
-        public static async Task<string> GetCachedSprite(string name)
+        public static string GetCachedSprite(string name)
         {
             var spritePath = System.IO.Path.Combine(spritesFolder, $"{name.ToLower()}.png");
             if (File.Exists(spritePath))

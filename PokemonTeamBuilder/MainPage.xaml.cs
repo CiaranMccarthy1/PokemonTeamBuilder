@@ -47,7 +47,7 @@ namespace PokemonTeamBuilder
 
                 if (pokemon != null)
                 {
-                    var cachedSpritePath = await PokemonCache.GetCachedSprite(query);
+                    var cachedSpritePath = PokemonCache.GetCachedSprite(query);
 
                     if (!string.IsNullOrEmpty(cachedSpritePath))
                     {
