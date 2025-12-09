@@ -133,11 +133,44 @@ namespace PokemonTeamBuilder
                 {
                     File.Delete(filePath);
                 }
+
+                var spritePath = System.IO.Path.Combine(spritesFolder, $"{name.ToLower()}.png");
+                if (File.Exists(spritePath))
+                {
+                    File.Delete(spritePath);
+                }
             }
             catch(Exception ex) 
             { 
                 Console.WriteLine($"Failed to delete file: {ex.Message}");
             }
+        }
+
+        public static async Task SaveFavorites(List<string> favorites)
+        {
+            InitializeFolders();
+            try
+            {
+                var json = JsonSerializer.Serialize(favorites, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                await File.WriteAllTextAsync(favoritesFile, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save favorites: {ex.Message}");
+            }
+        }
+
+        public static async Task<string> GetCachedSprite(string name)
+        {
+            var spritePath = System.IO.Path.Combine(spritesFolder, $"{name.ToLower()}.png");
+            if (File.Exists(spritePath))
+            {
+                return spritePath;
+            }
+            return null;
         }
     }
 }

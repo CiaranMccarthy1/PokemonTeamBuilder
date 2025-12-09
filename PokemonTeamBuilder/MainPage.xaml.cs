@@ -19,7 +19,6 @@ namespace PokemonTeamBuilder
         private async void OnSearchBarPressed(object sender, EventArgs e)
         {
             string query = searchBar.Text?.Trim().ToLower() ?? string.Empty;
-            await DisplayAlert("Search", $"You searched for: {query}", "OK");
 
             if (string.IsNullOrEmpty(query))
             {
@@ -34,7 +33,8 @@ namespace PokemonTeamBuilder
                 var favourite = await PokemonCache.GetFavorites();
                 bool isFavourite = favourite.Contains(query);
 
-                if (isFavourite && PokemonCache.IsCached(query)) {
+                if (isFavourite && PokemonCache.IsCached(query))
+                {
                     pokemon = await PokemonCache.GetCachedPokemon(query);
                 }
                 else
@@ -44,26 +44,44 @@ namespace PokemonTeamBuilder
 
                 if (pokemon != null)
                 {
-                    string spriteUrl = pokemon.Sprites?.Versions?.GenerationI?.RedBlue?.FrontDefault;
+                    var cachedSpritePath = await PokemonCache.GetCachedSprite(query);
 
-                    if (!string.IsNullOrEmpty(spriteUrl))
+                    if (!string.IsNullOrEmpty(cachedSpritePath))
                     {
-                        pokemonSprite.Source = spriteUrl;
-
-                        string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
-                        string types = string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) ?? "N/A";
-
-                        pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
-                        pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
-                        pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
-                        pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
+                        pokemonSprite.Source = cachedSpritePath;
+                        DisplayAlert("Successful", "Loaded sprite from cache", "OK");
                     }
                     else
                     {
-                        await DisplayAlert("Error", "Pokemon sprite not found", "OK");
-                        pokemonSprite.Source = null;
+                        string spriteUrl = pokemon.Sprites?.Versions?.GenerationI?.RedBlue?.FrontDefault;
+
+                        if (!string.IsNullOrEmpty(spriteUrl))
+                        {
+                            pokemonSprite.Source = spriteUrl;
+                        }
+                        else
+                        {
+                            await DisplayAlert("Error", "Pokemon sprite not found", "OK");
+                            pokemonSprite.Source = null;
+                            return;
+                        }
                     }
+                    string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+                    string types = pokemon.Types != null ? string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) : "N/A";
+
+                    pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
+                    pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
+                    pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
+                    pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
+                    pokemonStatLabel.Text = $"Base Stat Total: {pokemon.TotalBaseStats}";
                     currentPokemonName = pokemon.Name.ToLower();
+                    pokemonFavouriteButton.Text = isFavourite ? "Favourite" : "Not favourite";
+                    pokemonFavouriteButton.IsVisible = true;
+                }
+                else
+                {
+                    await DisplayAlert("Error", "Pokémon data could not be retrieved.", "OK");
+
                 }
             }
 
@@ -167,21 +185,32 @@ namespace PokemonTeamBuilder
                 return;
             }
 
-            var favourites = await PokemonCache.GetFavorites();
+            try
+            {
+                var favourites = await PokemonCache.GetFavorites();
 
-            if (favourites.Contains(currentPokemonName))
-            {
-                favourites.Remove(currentPokemonName);
-                PokemonCache.RemoveFromCache(currentPokemonName);
-                pokemonFavouriteButton.Text = "★";
+                if (favourites.Contains(currentPokemonName))
+                {
+                    favourites.Remove(currentPokemonName);
+                    PokemonCache.RemoveFromCache(currentPokemonName);
+                    pokemonFavouriteButton.Text = "Not favourite";
+                }
+                else
+                {
+                    favourites.Add(currentPokemonName);
+                    var pokemon = await PokemonData(currentPokemonName);
+                    await PokemonCache.CachePokemon(pokemon);
+                    await PokemonCache.SaveFavorites(favourites);
+                    pokemonFavouriteButton.Text = "Favourite";
+                }
+                await PokemonCache.SaveFavorites(favourites);
             }
-            else
+            catch (Exception ex)
             {
-                favourites.Add(currentPokemonName);
-                var pokemon = await PokemonData(currentPokemonName);
-                await PokemonCache.CachePokemon(pokemon);
-                pokemonFavouriteButton.Text = "⭐";
+                await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
             }
+
+
         }
 
 
