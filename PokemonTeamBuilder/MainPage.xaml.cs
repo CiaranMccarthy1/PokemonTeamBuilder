@@ -8,6 +8,7 @@ namespace PokemonTeamBuilder
 
         private readonly HttpClient _httpClient = new HttpClient();
         private List<string> allPokemonNames = GetGen1Pokemon();
+        private string currentPokemonName;
 
         public MainPage()
         {
@@ -18,7 +19,7 @@ namespace PokemonTeamBuilder
         private async void OnSearchBarPressed(object sender, EventArgs e)
         {
             string query = searchBar.Text?.Trim().ToLower() ?? string.Empty;
-            //DisplayAlert("Search", $"You searched for: {query}", "OK");
+            await DisplayAlert("Search", $"You searched for: {query}", "OK");
 
             if (string.IsNullOrEmpty(query))
             {
@@ -28,31 +29,41 @@ namespace PokemonTeamBuilder
 
             try
             {
-                var pokemon = await PokemonData(query);
+                Pokemon pokemon;
 
-                string spriteUrl = pokemon?.Sprites?
-                                           .Versions?
-                                           .GenerationI?
-                                           .RedBlue?
-                                           .FrontDefault;
+                var favourite = await PokemonCache.GetFavorites();
+                bool isFavourite = favourite.Contains(query);
 
-                if (!string.IsNullOrEmpty(spriteUrl))
-                {
-                    pokemonSprite.Source = spriteUrl;
-
-                    string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
-
-                    string types = string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) ?? "N/A";
-
-                    pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
-                    pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
-                    pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
-                    pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
+                if (isFavourite && PokemonCache.IsCached(query)) {
+                    pokemon = await PokemonCache.GetCachedPokemon(query);
                 }
                 else
                 {
-                    DisplayAlert("Not Found", "Sprite not found for this Pokémon.", "OK");
-                    pokemonSprite.Source = null;
+                    pokemon = await PokemonData(query);
+                }
+
+                if (pokemon != null)
+                {
+                    string spriteUrl = pokemon.Sprites?.Versions?.GenerationI?.RedBlue?.FrontDefault;
+
+                    if (!string.IsNullOrEmpty(spriteUrl))
+                    {
+                        pokemonSprite.Source = spriteUrl;
+
+                        string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+                        string types = string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) ?? "N/A";
+
+                        pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
+                        pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
+                        pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
+                        pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", "Pokemon sprite not found", "OK");
+                        pokemonSprite.Source = null;
+                    }
+                    currentPokemonName = pokemon.Name.ToLower();
                 }
             }
 
@@ -147,6 +158,30 @@ namespace PokemonTeamBuilder
                     "kabutops","aerodactyl","snorlax","articuno","zapdos","moltres",
                     "dratini","dragonair","dragonite","mewtwo","mew"
             };
+        }
+
+        private async void OnFavouriteClicked(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentPokemonName))
+            {
+                return;
+            }
+
+            var favourites = await PokemonCache.GetFavorites();
+
+            if (favourites.Contains(currentPokemonName))
+            {
+                favourites.Remove(currentPokemonName);
+                PokemonCache.RemoveFromCache(currentPokemonName);
+                pokemonFavouriteButton.Text = "★";
+            }
+            else
+            {
+                favourites.Add(currentPokemonName);
+                var pokemon = await PokemonData(currentPokemonName);
+                await PokemonCache.CachePokemon(pokemon);
+                pokemonFavouriteButton.Text = "⭐";
+            }
         }
 
 

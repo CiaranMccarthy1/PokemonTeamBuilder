@@ -45,6 +45,14 @@
                    FontSize="15"
                 HorizontalOptions="Center"
                 VerticalOptions="Center" />
+            
+            <Button x:Name="pokemonFavouriteButton"
+                    FontSize="15"
+                    Text=""
+                    Clicked="OnFavouriteClicked"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+                    
 
 
 

@@ -109,12 +109,16 @@ public partial class TeamsPage : ContentPage
             HeightRequest = 250
         };
 
-        var stackLayout = new VerticalStackLayout
+        var mainLayout = new Grid
         {
-            Spacing = 10
+            RowDefinitions = new RowDefinitionCollection
+    {
+        new RowDefinition { Height = GridLength.Auto },
+        new RowDefinition { Height = GridLength.Star }
+    }
         };
 
-        
+
         var nameLabel = new Label
         {
             Text = team.Name,
@@ -123,7 +127,7 @@ public partial class TeamsPage : ContentPage
             HorizontalOptions = LayoutOptions.Center,
             TextColor = Colors.Black
         };
-        stackLayout.Children.Add(nameLabel);
+        mainLayout.Children.Add(nameLabel);
 
         
         if (team.Id == 1 && team.PokemonCount > 0)
@@ -163,21 +167,41 @@ public partial class TeamsPage : ContentPage
                 pokemonGrid.Children.Add(box);
             }
 
-            stackLayout.Children.Add(pokemonGrid);
+            mainLayout.Children.Add(pokemonGrid);
         }
 
-        border.Content = stackLayout;
+        border.Content = mainLayout;
 
         
         var tapGesture = new TapGestureRecognizer();
         tapGesture.Tapped += (s, e) => OnTeamCardTapped(team);
         border.GestureRecognizers.Add(tapGesture);
 
-       
-        var longPressGesture = new PointerGestureRecognizer();
-        longPressGesture.PointerPressed += async (s, e) =>
+        var headerGrid = new Grid
         {
-            await Task.Delay(500); 
+            ColumnDefinitions = new ColumnDefinitionCollection
+                {
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto }
+                }
+        };
+
+
+        var deleteButton = new Button
+        {
+            Text = "×",
+            FontSize = 24,
+            WidthRequest = 30,
+            HeightRequest = 30,
+            CornerRadius = 15,
+            Padding = 0,
+            BackgroundColor = Colors.Red,
+            TextColor = Colors.White,
+            HorizontalOptions = LayoutOptions.End,
+            VerticalOptions = LayoutOptions.Start
+        };
+        deleteButton.Clicked += async (s, e) =>
+        {
             bool delete = await DisplayAlert("Delete Team", $"Delete {team.Name}?", "Yes", "No");
             if (delete)
             {
@@ -186,7 +210,11 @@ public partial class TeamsPage : ContentPage
                 DisplayTeams();
             }
         };
-        border.GestureRecognizers.Add(longPressGesture);
+        Grid.SetColumn(deleteButton, 1);
+        headerGrid.Children.Add(deleteButton);
+
+        Grid.SetRow(headerGrid, 0);
+        mainLayout.Children.Add(headerGrid);
 
         return border;
     }

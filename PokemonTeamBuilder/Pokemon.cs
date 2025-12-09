@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace PokemonTeamBuilder
 {
-    class Pokemon
+    public class Pokemon
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -12,6 +12,9 @@ namespace PokemonTeamBuilder
         public float Weight { get; set; }
         public PokemonSprites Sprites { get; set; }
         public List<PokemonTypeWrapper> Types { get; set; }
+
+        [JsonIgnore]
+        public bool Favourite { get; set; }
     }
 
     public class PokemonSprites
