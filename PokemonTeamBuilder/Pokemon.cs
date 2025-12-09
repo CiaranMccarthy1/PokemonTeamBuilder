@@ -12,6 +12,7 @@ namespace PokemonTeamBuilder
         public PokemonSprites Sprites { get; set; }
         public List<PokemonTypeWrapper> Types { get; set; }
         public List<PokemonStrengthWrapper> Strengths { get; set; }
+        public List<PokemonWeaknessWrapper> Weaknesses { get; set; }
         public List<PokemonStat> BaseTotal { get; set; }
 
         [JsonPropertyName("stats")]
@@ -76,6 +77,18 @@ namespace PokemonTeamBuilder
         public string Url { get; set; }
     }
 
+    public class PokemonStrengthWrapper
+    {
+        public string Type { get; set; }
+        public float Multiplier { get; set; }
+    }
+
+    public class PokemonWeaknessWrapper
+    {
+        public string Type { get; set; }
+        public float Multiplier { get; set; }
+    }
+
     public class PokemonTypeEffectiveness
     {
         /* 
@@ -88,54 +101,237 @@ namespace PokemonTeamBuilder
         {
             ["normal"] = new() { ["rock"] = 0.5f, ["ghost"] = 0f, ["steel"] = 0.5f },
 
-            ["fire"] = new() { ["fire"] = 0.5f, ["water"] = 0.5f, ["grass"] = 2f, ["ice"] = 2f, 
-            ["bug"] = 2f, ["rock"] = 0.5f, ["dragon"] = 0.5f, ["steel"] = 2f },
+            ["fire"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["water"] = 0.5f,
+                ["grass"] = 2f,
+                ["ice"] = 2f,
+                ["bug"] = 2f,
+                ["rock"] = 0.5f,
+                ["dragon"] = 0.5f,
+                ["steel"] = 2f
+            },
 
-            ["water"] = new() { ["fire"] = 2f, ["water"] = 0.5f, ["grass"] = 0.5f, ["ground"] = 2f, 
-            ["rock"] = 2f, ["dragon"] = 0.5f },
+            ["water"] = new()
+            {
+                ["fire"] = 2f,
+                ["water"] = 0.5f,
+                ["grass"] = 0.5f,
+                ["ground"] = 2f,
+                ["rock"] = 2f,
+                ["dragon"] = 0.5f
+            },
 
-            ["electric"] = new() { ["water"] = 2f, ["electric"] = 0.5f, ["grass"] = 0.5f, 
-            ["ground"] = 0f, ["flying"] = 2f, ["dragon"] = 0.5f },
+            ["electric"] = new()
+            {
+                ["water"] = 2f,
+                ["electric"] = 0.5f,
+                ["grass"] = 0.5f,
+                ["ground"] = 0f,
+                ["flying"] = 2f,
+                ["dragon"] = 0.5f
+            },
 
-            ["grass"] = new() { ["fire"] = 0.5f, ["water"] = 2f, ["grass"] = 0.5f, ["poison"] = 0.5f,
-            ["ground"] = 2f, ["flying"] = 0.5f, ["bug"] = 0.5f, ["rock"] = 2f, ["dragon"] = 0.5f, 
-            ["steel"] = 0.5f },
+            ["grass"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["water"] = 2f,
+                ["grass"] = 0.5f,
+                ["poison"] = 0.5f,
+                ["ground"] = 2f,
+                ["flying"] = 0.5f,
+                ["bug"] = 0.5f,
+                ["rock"] = 2f,
+                ["dragon"] = 0.5f,
+                ["steel"] = 0.5f
+            },
 
-            ["ice"] = new() { ["fire"] = 0.5f, ["water"] = 0.5f, ["grass"] = 2f, ["ice"] = 0.5f,
-            ["ground"] = 2f, ["flying"] = 2f, ["dragon"] = 2f, ["steel"] = 0.5f },
+            ["ice"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["water"] = 0.5f,
+                ["grass"] = 2f,
+                ["ice"] = 0.5f,
+                ["ground"] = 2f,
+                ["flying"] = 2f,
+                ["dragon"] = 2f,
+                ["steel"] = 0.5f
+            },
 
-            ["fighting"] = new() { ["normal"] = 2f, ["ice"] = 2f, ["rock"] = 2f, ["dark"] = 2f,
-            ["steel"] = 2f, ["poison"] = 0.5f, ["flying"] = 0.5f, ["psychic"] = 0.5f, 
-            ["bug"] = 0.5f, ["ghost"] = 0f },
+            ["fighting"] = new()
+            {
+                ["normal"] = 2f,
+                ["ice"] = 2f,
+                ["rock"] = 2f,
+                ["dark"] = 2f,
+                ["steel"] = 2f,
+                ["poison"] = 0.5f,
+                ["flying"] = 0.5f,
+                ["psychic"] = 0.5f,
+                ["bug"] = 0.5f,
+                ["ghost"] = 0f
+            },
 
-            ["poison"] = new() { ["grass"] = 2f, ["poison"] = 0.5f, ["ground"] = 0.5f, 
-            ["rock"] = 0.5f, ["ghost"] = 0.5f, ["steel"] = 0f },
+            ["poison"] = new()
+            {
+                ["grass"] = 2f,
+                ["poison"] = 0.5f,
+                ["ground"] = 0.5f,
+                ["rock"] = 0.5f,
+                ["ghost"] = 0.5f,
+                ["steel"] = 0f
+            },
 
-            ["ground"] = new() { ["fire"] = 2f, ["electric"] = 2f, ["grass"] = 0.5f, ["poison"] = 2f, 
-            ["flying"] = 0f, ["bug"] = 0.5f, ["rock"] = 2f, ["steel"] = 2f },
+            ["ground"] = new()
+            {
+                ["fire"] = 2f,
+                ["electric"] = 2f,
+                ["grass"] = 0.5f,
+                ["poison"] = 2f,
+                ["flying"] = 0f,
+                ["bug"] = 0.5f,
+                ["rock"] = 2f,
+                ["steel"] = 2f
+            },
 
-            ["flying"] = new() { ["electric"] = 0.5f, ["grass"] = 2f, ["fighting"] = 2f, ["bug"] = 2f, 
-            ["rock"] = 0.5f, ["steel"] = 0.5f },
+            ["flying"] = new()
+            {
+                ["electric"] = 0.5f,
+                ["grass"] = 2f,
+                ["fighting"] = 2f,
+                ["bug"] = 2f,
+                ["rock"] = 0.5f,
+                ["steel"] = 0.5f
+            },
 
-            ["psychic"] = new() { ["fighting"] = 2f, ["poison"] = 2f, ["psychic"] = 0.5f, ["dark"] = 0f, 
-            ["steel"] = 0.5f },
+            ["psychic"] = new()
+            {
+                ["fighting"] = 2f,
+                ["poison"] = 2f,
+                ["psychic"] = 0.5f,
+                ["dark"] = 0f,
+                ["steel"] = 0.5f
+            },
 
-            ["bug"] = new() { ["fire"] = 0.5f, ["grass"] = 2f, ["fighting"] = 0.5f, ["poison"] = 0.5f, 
-            ["flying"] = 0.5f, ["psychic"] = 2f, ["ghost"] = 0.5f, ["dark"] = 2f, ["steel"] = 0.5f },
+            ["bug"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["grass"] = 2f,
+                ["fighting"] = 0.5f,
+                ["poison"] = 0.5f,
+                ["flying"] = 0.5f,
+                ["psychic"] = 2f,
+                ["ghost"] = 0.5f,
+                ["dark"] = 2f,
+                ["steel"] = 0.5f
+            },
 
-            ["rock"] = new() { ["fire"] = 2f, ["ice"] = 2f, ["fighting"] = 0.5f, ["ground"] = 0.5f, 
-            ["flying"] = 2f, ["bug"] = 2f, ["steel"] = 0.5f },
+            ["rock"] = new()
+            {
+                ["fire"] = 2f,
+                ["ice"] = 2f,
+                ["fighting"] = 0.5f,
+                ["ground"] = 0.5f,
+                ["flying"] = 2f,
+                ["bug"] = 2f,
+                ["steel"] = 0.5f
+            },
 
             ["ghost"] = new() { ["normal"] = 0f, ["psychic"] = 2f, ["ghost"] = 2f, ["dark"] = 0.5f, ["steel"] = 0.5f },
 
             ["dragon"] = new() { ["dragon"] = 2f, ["steel"] = 0.5f },
 
-            ["dark"] = new() { ["fighting"] = 0.5f, ["psychic"] = 2f, ["ghost"] = 2f, ["dark"] = 0.5f, 
-            ["steel"] = 0.5f },
+            ["dark"] = new()
+            {
+                ["fighting"] = 0.5f,
+                ["psychic"] = 2f,
+                ["ghost"] = 2f,
+                ["dark"] = 0.5f,
+                ["steel"] = 0.5f
+            },
 
-            ["steel"] = new() { ["fire"] = 0.5f, ["water"] = 0.5f, ["electric"] = 0.5f, ["ice"] = 2f, 
-            ["rock"] = 2f, ["steel"] = 0.5f }
+            ["steel"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["water"] = 0.5f,
+                ["electric"] = 0.5f,
+                ["ice"] = 2f,
+                ["rock"] = 2f,
+                ["steel"] = 0.5f
+            }
         };
 
+        public static List<PokemonStrengthWrapper> GetStrengths(List<string> pokemonTypes)
+        {
+            var strengths = new Dictionary<string, float>();
+
+            foreach (var attacker in pokemonTypes)
+            {
+                if (!effectivenessChart.ContainsKey(attacker))
+                    continue;
+
+                foreach (var defender in effectivenessChart[attacker])
+                {
+                    if (defender.Value > 1f)
+                    {
+                        if (!strengths.ContainsKey(defender.Key))
+                        {
+                            strengths[defender.Key] = defender.Value;
+                        }
+                        else
+                        {                     
+                            strengths[defender.Key] = Math.Max(strengths[defender.Key], defender.Value);
+                        }
+                    }
+                }
+            }
+
+            return strengths
+                .Where(s => s.Value > 1f)
+                .Select(s => new PokemonStrengthWrapper
+                {
+                    Type = s.Key,
+                    Multiplier = s.Value
+                })
+                .ToList();
+        }
+
+        public static List<PokemonWeaknessWrapper> GetWeaknesses(List<string> pokemonTypes)
+        {
+            var defenseMultipliers = new Dictionary<string, float>();
+
+
+            foreach (var defender in pokemonTypes)
+            {
+                foreach (var attacker in effectivenessChart)
+                {
+
+                    float effectiveness = 1f;
+
+                    if (attacker.Value.ContainsKey(defender))
+                    {
+                        effectiveness = attacker.Value[defender];
+                    }
+
+                    if (!defenseMultipliers.ContainsKey(attacker.Key))
+                        defenseMultipliers[attacker.Key] = effectiveness;
+                    else
+                        defenseMultipliers[attacker.Key] *= effectiveness;
+                }
+            }
+
+            return defenseMultipliers
+                .Where(s => s.Value > 1f)
+                .Select(s => new PokemonWeaknessWrapper
+                {
+                    Type = s.Key,
+                    Multiplier = s.Value
+                })
+                .ToList();
+        }
     }
+
+
+
 }

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
+using System.Text;
 
 namespace PokemonTeamBuilder
 {
@@ -18,6 +19,8 @@ namespace PokemonTeamBuilder
 
         private async void OnSearchBarPressed(object sender, EventArgs e)
         {
+            ClearPokemonDisplay();
+
             string query = searchBar.Text?.Trim().ToLower() ?? string.Empty;
 
             if (string.IsNullOrEmpty(query))
@@ -77,6 +80,8 @@ namespace PokemonTeamBuilder
                     currentPokemonName = pokemon.Name.ToLower();
                     pokemonFavouriteButton.Text = isFavourite ? "Favourite" : "Not favourite";
                     pokemonFavouriteButton.IsVisible = true;
+                    pokemonStrenghtLabel.Text = FormatStrengths(pokemon.Strengths);
+                    pokemonWeaknessLabel.Text = FormatWeaknesses(pokemon.Weaknesses);
                 }
                 else
                 {
@@ -108,6 +113,13 @@ namespace PokemonTeamBuilder
             {
                 PropertyNameCaseInsensitive = true
             });
+
+            if (pokemon != null && pokemon.Types != null)
+            {
+                var pokemonTypeNames = pokemon.Types.Select(t => t.Type.Name).ToList();
+                pokemon.Strengths = PokemonTypeEffectiveness.GetStrengths(pokemonTypeNames);
+                pokemon.Weaknesses = PokemonTypeEffectiveness.GetWeaknesses(pokemonTypeNames);
+            }
 
             return pokemon;
         }
@@ -211,6 +223,50 @@ namespace PokemonTeamBuilder
             }
 
 
+        }
+
+        private void ClearPokemonDisplay()
+        {
+            pokemonSprite.Source = null;
+            pokemonNameLabel.Text = string.Empty;
+            pokemonHeightLabel.Text = string.Empty;
+            pokemonWeightLabel.Text = string.Empty;
+            pokemonTypeLabel.Text = string.Empty;
+            pokemonStatLabel.Text = string.Empty;
+            pokemonStrenghtLabel.Text = string.Empty;
+            pokemonWeaknessLabel.Text = string.Empty;
+            pokemonFavouriteButton.IsVisible = false;
+            currentPokemonName = string.Empty;
+        }
+
+        private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
+        {
+            if (strengths == null || strengths.Count == 0)
+            {
+                return "Strengths: None";
+            }
+
+           
+            var formattedList = strengths
+                .OrderByDescending(s => s.Multiplier)
+                .Select(s => $"{char.ToUpper(s.Type[0]) + s.Type.Substring(1)} ({s.Multiplier:0.##}x)");
+
+            return $"Strengths: {string.Join(", ", formattedList)}";
+        }
+
+        private string FormatWeaknesses(List<PokemonWeaknessWrapper> weaknesses)
+        {
+            if (weaknesses == null || weaknesses.Count == 0)
+            {
+                return "Weaknesses: None";
+            }
+
+            
+            var formattedList = weaknesses
+                .OrderByDescending(w => w.Multiplier)
+                .Select(w => $"{char.ToUpper(w.Type[0]) + w.Type.Substring(1)} ({w.Multiplier:0.##}x)");
+
+            return $"Weakness: {string.Join(", ", formattedList)}";
         }
 
 
