@@ -11,6 +11,7 @@ namespace PokemonTeamBuilder
         public float Weight { get; set; }
         public PokemonSprites Sprites { get; set; }
         public List<PokemonTypeWrapper> Types { get; set; }
+        public List<PokemonStrengthWrapper> Strengths { get; set; }
         public List<PokemonStat> BaseTotal { get; set; }
 
         [JsonPropertyName("stats")]
