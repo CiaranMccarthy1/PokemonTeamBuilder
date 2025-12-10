@@ -30,6 +30,27 @@
                           IsVisible="True"
                           HorizontalOptions="FillAndExpand" />
 
+
+                <CollectionView x:Name="allPokemonCollectionView"
+                 IsVisible="False"
+                 SelectionMode="Single"
+                 SelectionChanged="AllPokemonCollectionView_SelectionChanged"
+                 HeightRequest="300">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="3" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="5" Margin="5" HasShadow="False" BorderColor="LightGray">
+                                <StackLayout HorizontalOptions="Center">
+                                    <Image Source="{Binding SpriteUrl}" WidthRequest="60" HeightRequest="60"/>
+                                    <Label Text="{Binding Name}" FontSize="12" HorizontalOptions="Center"/>
+                                </StackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
             </VerticalStackLayout>
 
             <Grid Grid.Row="1" Grid.ColumnSpan="2" 

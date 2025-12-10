@@ -10,13 +10,15 @@ namespace PokemonTeamBuilder
         private readonly HttpClient _httpClient = new HttpClient();
         private List<string> allPokemonNames = GetGen1Pokemon();
         private string currentPokemonName;
+        public List<PokemonGridItem> AllPokemonDisplayList = new();
 
         //takes HttpClient as parameter
         public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
             _httpClient = httpClient;
-  
+            _ = LoadAllPokemonForGridA();
+
         }
 
         private async void OnSearchBarPressed(object sender, EventArgs e)
@@ -116,11 +118,7 @@ namespace PokemonTeamBuilder
             // Deserialize JSON response to string
             var json = await response.Content.ReadAsStringAsync();
 
-            var pokemon = JsonSerializer.Deserialize<Pokemon>(json, new JsonSerializerOptions
-            {
-                // make deserialization case insensitive
-                PropertyNameCaseInsensitive = true
-            });
+            var pokemon = JsonSerializer.Deserialize<Pokemon>(json, MainPage.CachedJsonOptions);
 
             // Calculate strengths and weaknesses based on types
             if (pokemon != null && pokemon.Types != null)
@@ -140,9 +138,11 @@ namespace PokemonTeamBuilder
             if (string.IsNullOrWhiteSpace(query))
             {
                 suggestionListView.ItemsSource = null; 
-                suggestionListView.IsVisible = false;   
+                suggestionListView.IsVisible = false;
+                allPokemonCollectionView.IsVisible = true;
                 return;
             }
+            allPokemonCollectionView.IsVisible = false;
 
             // gets 10 pokeomon names that start with the query
             var suggestions = allPokemonNames
@@ -150,7 +150,7 @@ namespace PokemonTeamBuilder
                               .Take(10)
                               .ToList();
 
-            // hides if seatch abr empty or no suggestions
+            // hides if search abr empty or no suggestions
             suggestionListView.IsVisible = suggestions.Count > 0;
 
             suggestionListView.ItemsSource = suggestions;
@@ -251,6 +251,7 @@ namespace PokemonTeamBuilder
             pokemonWeaknessLabel.Text = string.Empty;
             pokemonFavouriteButton.IsVisible = false;
             currentPokemonName = string.Empty;
+            allPokemonCollectionView.IsVisible = false;
         }
 
         private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
@@ -283,8 +284,65 @@ namespace PokemonTeamBuilder
             return $"Weakness: {string.Join(", ", formattedList)}";
         }
 
+        public class PokemonGridItem
+        {
+            public string Name { get; set; }
+            public string SpriteUrl { get; set; }
+        }
 
+        private async Task LoadAllPokemonForGrid()
+        {
+            var names = await GetAllPokemonNamesAsync(_httpClient);
+            AllPokemonDisplayList = names
+                .Select((name, idx) => new PokemonGridItem
+                {
+                    Name = char.ToUpper(name[0]) + name.Substring(1),
+                    SpriteUrl = $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{idx + 1}.png"
+                })
+                .ToList();
+            allPokemonCollectionView.ItemsSource = null;
+            allPokemonCollectionView.ItemsSource = AllPokemonDisplayList;
+        }
 
+        private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.CurrentSelection.FirstOrDefault() is PokemonGridItem selected)
+            {
+                searchBar.Text = selected.Name.ToLower();
+                OnSearchBarPressed(null, null);
+                allPokemonCollectionView.SelectedItem = null;
+            }
+        }
+
+        private async Task<List<string>> GetAllPokemonNamesAsync(HttpClient httpClient)
+        {
+            var names = new List<string>();
+            string url = "https://pokeapi.co/api/v2/pokemon?limit=1025";
+
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return names;
+
+            var json = await response.Content.ReadAsStringAsync();
+            var data = JsonSerializer.Deserialize<PokemonListResponse>(json, MainPage.CachedJsonOptions);
+
+            if (data?.Results != null)
+                names = data.Results.Select(p => p.Name).ToList();
+
+            return names;
+        }
+
+        public static readonly JsonSerializerOptions CachedJsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     }
 
+    public class PokemonListResponse
+    {
+        public List<PokemonListItem> Results { get; set; }
+    }
+
+    public class PokemonListItem
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+    }
 }
