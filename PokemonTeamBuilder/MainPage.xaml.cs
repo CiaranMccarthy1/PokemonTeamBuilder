@@ -7,17 +7,16 @@ namespace PokemonTeamBuilder
     public partial class MainPage : ContentPage
     {
 
-        private readonly HttpClient _httpClient = new HttpClient();
-        private List<string> allPokemonNames = GetGen1Pokemon();
+        private readonly PokemonService pokemonService;
         private string currentPokemonName;
-        public List<PokemonGridItem> AllPokemonDisplayList = new();
+        public List<PokemonGridItem> AllPokemonNames = new();
 
         //takes HttpClient as parameter
         public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
-            _httpClient = httpClient;
-            _ = LoadAllPokemonForGridA();
+            pokemonService = new PokemonService(httpClient);
+            _ = LoadAllPokemonForGrid();
 
         }
 
@@ -48,7 +47,7 @@ namespace PokemonTeamBuilder
                 else
                 {
                     // Gets pokemon data from API
-                    pokemon = await PokemonData(query);
+                    pokemon = await pokemonService.GetPokemon(query);
                 }
 
                 if (pokemon != null)
@@ -75,6 +74,9 @@ namespace PokemonTeamBuilder
                             return;
                         }
                     }
+                    allPokemonCollectionView.IsVisible = false;
+                    pokemonDetailsGrid.IsVisible = true;
+                    
                     //Formats Name and types 
                     string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
                     string types = pokemon.Types != null ? string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) : "N/A";
@@ -105,31 +107,6 @@ namespace PokemonTeamBuilder
             searchBar.Text = string.Empty;
         }
 
-        private async Task<Pokemon> PokemonData(string name)
-        {
-            // API endpoint to get pokemon data
-            string url = $"https://pokeapi.co/api/v2/pokemon/{name}";
-
-            var response = await _httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-                throw new Exception("Pokémon not found");
-
-            // Deserialize JSON response to string
-            var json = await response.Content.ReadAsStringAsync();
-
-            var pokemon = JsonSerializer.Deserialize<Pokemon>(json, MainPage.CachedJsonOptions);
-
-            // Calculate strengths and weaknesses based on types
-            if (pokemon != null && pokemon.Types != null)
-            {
-                var pokemonTypeNames = pokemon.Types.Select(t => t.Type.Name).ToList();
-                pokemon.Strengths = PokemonTypeEffectiveness.GetStrengths(pokemonTypeNames);
-                pokemon.Weaknesses = PokemonTypeEffectiveness.GetWeaknesses(pokemonTypeNames);
-            }
-
-            return pokemon;
-        }
 
         private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -137,16 +114,16 @@ namespace PokemonTeamBuilder
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                suggestionListView.ItemsSource = null; 
+                suggestionListView.ItemsSource = null;
                 suggestionListView.IsVisible = false;
-                allPokemonCollectionView.IsVisible = true;
                 return;
             }
-            allPokemonCollectionView.IsVisible = false;
+            
 
             // gets 10 pokeomon names that start with the query
-            var suggestions = allPokemonNames
-                              .Where(name => name.StartsWith(query))
+            var suggestions = AllPokemonNames
+                              .Where(p => p.Name.ToLower().StartsWith(query))
+                              .Select(p => p.Name) 
                               .Take(10)
                               .ToList();
 
@@ -158,47 +135,14 @@ namespace PokemonTeamBuilder
 
         private void suggestionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            if (e.SelectedItem == null)
-                return; 
-
-            string selectedPokemon = e.SelectedItem.ToString();
+            if (e.SelectedItem is not string selectedPokemon)
+                return;
 
             searchBar.Text = selectedPokemon;
-            // Trigger search by passing null 
             OnSearchBarPressed(null, null);
 
             suggestionListView.SelectedItem = null;
-        }
-
-        // Need to move to json file
-        public static List<string> GetGen1Pokemon()
-        {
-            return new List<string>
-                {
-                    "bulbasaur","ivysaur","venusaur","charmander","charmeleon","charizard",
-                    "squirtle","wartortle","blastoise","caterpie","metapod","butterfree",
-                    "weedle","kakuna","beedrill","pidgey","pidgeotto","pidgeot",
-                    "rattata","raticate","spearow","fearow","ekans","arbok",
-                    "pikachu","raichu","sandshrew","sandslash","nidoran-f","nidorina",
-                    "nidoqueen","nidoran-m","nidorino","nidoking","clefairy","clefable",
-                    "vulpix","ninetales","jigglypuff","wigglytuff","zubat","golbat",
-                    "oddish","gloom","vileplume","paras","parasect","venonat","venomoth",
-                    "diglett","dugtrio","meowth","persian","psyduck","golduck","mankey",
-                    "primeape","growlithe","arcanine","poliwag","poliwhirl","poliwrath",
-                    "abra","kadabra","alakazam","machop","machoke","machamp","bellsprout",
-                    "weepinbell","victreebel","tentacool","tentacruel","geodude","graveler",
-                    "golem","ponyta","rapidash","slowpoke","slowbro","magnemite","magneton",
-                    "farfetchd","doduo","dodrio","seel","dewgong","grimer","muk","shellder",
-                    "cloyster","gastly","haunter","gengar","onix","drowzee","hypno","krabby",
-                    "kingler","voltorb","electrode","exeggcute","exeggutor","cubone","marowak",
-                    "hitmonlee","hitmonchan","lickitung","koffing","weezing","rhyhorn","rhydon",
-                    "chansey","tangela","kangaskhan","horsea","seadra","goldeen","seaking",
-                    "staryu","starmie","mr-mime","scyther","jynx","electabuzz","magmar",
-                    "pinsir","tauros","magikarp","gyarados","lapras","ditto","eevee",
-                    "vaporeon","jolteon","flareon","porygon","omanyte","omastar","kabuto",
-                    "kabutops","aerodactyl","snorlax","articuno","zapdos","moltres",
-                    "dratini","dragonair","dragonite","mewtwo","mew"
-            };
+            suggestionListView.IsVisible = false;
         }
 
         private async void OnFavouriteClicked(object sender, EventArgs e)
@@ -223,7 +167,7 @@ namespace PokemonTeamBuilder
                 else
                 {
                     favourites.Add(currentPokemonName);
-                    var pokemon = await PokemonData(currentPokemonName);
+                    var pokemon = await pokemonService.GetPokemon(currentPokemonName);
                     await PokemonCache.CachePokemon(pokemon);
                     pokemonFavouriteButton.Text = "Favourite";
                 }
@@ -251,7 +195,6 @@ namespace PokemonTeamBuilder
             pokemonWeaknessLabel.Text = string.Empty;
             pokemonFavouriteButton.IsVisible = false;
             currentPokemonName = string.Empty;
-            allPokemonCollectionView.IsVisible = false;
         }
 
         private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
@@ -292,8 +235,8 @@ namespace PokemonTeamBuilder
 
         private async Task LoadAllPokemonForGrid()
         {
-            var names = await GetAllPokemonNamesAsync(_httpClient);
-            AllPokemonDisplayList = names
+            var names = await pokemonService.GetAllPokemonNames();
+            AllPokemonNames = names
                 .Select((name, idx) => new PokemonGridItem
                 {
                     Name = char.ToUpper(name[0]) + name.Substring(1),
@@ -301,7 +244,7 @@ namespace PokemonTeamBuilder
                 })
                 .ToList();
             allPokemonCollectionView.ItemsSource = null;
-            allPokemonCollectionView.ItemsSource = AllPokemonDisplayList;
+            allPokemonCollectionView.ItemsSource = AllPokemonNames;
         }
 
         private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -314,35 +257,5 @@ namespace PokemonTeamBuilder
             }
         }
 
-        private async Task<List<string>> GetAllPokemonNamesAsync(HttpClient httpClient)
-        {
-            var names = new List<string>();
-            string url = "https://pokeapi.co/api/v2/pokemon?limit=1025";
-
-            var response = await httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-                return names;
-
-            var json = await response.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<PokemonListResponse>(json, MainPage.CachedJsonOptions);
-
-            if (data?.Results != null)
-                names = data.Results.Select(p => p.Name).ToList();
-
-            return names;
-        }
-
-        public static readonly JsonSerializerOptions CachedJsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-    }
-
-    public class PokemonListResponse
-    {
-        public List<PokemonListItem> Results { get; set; }
-    }
-
-    public class PokemonListItem
-    {
-        public string Name { get; set; }
-        public string Url { get; set; }
     }
 }

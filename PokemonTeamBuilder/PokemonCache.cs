@@ -173,5 +173,11 @@ namespace PokemonTeamBuilder
             }
             return null;
         }
+
+        public static async Task<bool> IsFavouriteAsync(string pokemonName)
+        {
+            var favourites = await GetFavorites();
+            return favourites.Contains(pokemonName);
+        }
     }
 }

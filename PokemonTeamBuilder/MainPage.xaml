@@ -27,40 +27,55 @@
                 <ListView x:Name="suggestionListView"
                           ItemSelected="suggestionListView_ItemSelected"
                           HeightRequest="100"
-                          IsVisible="True"
+                          IsVisible="False"
                           HorizontalOptions="FillAndExpand" />
 
 
                 <CollectionView x:Name="allPokemonCollectionView"
-                 IsVisible="False"
-                 SelectionMode="Single"
-                 SelectionChanged="AllPokemonCollectionView_SelectionChanged"
-                 HeightRequest="300">
+                                Grid.RowSpan="2"
+                                Grid.ColumnSpan="2"
+                                IsVisible="True"
+                                SelectionMode="Single"
+                                SelectionChanged="AllPokemonCollectionView_SelectionChanged"
+                                HeightRequest="-1">
+
                     <CollectionView.ItemsLayout>
                         <GridItemsLayout Orientation="Vertical" Span="3" />
                     </CollectionView.ItemsLayout>
+
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Frame Padding="5" Margin="5" HasShadow="False" BorderColor="LightGray">
                                 <StackLayout HorizontalOptions="Center">
-                                    <Image Source="{Binding SpriteUrl}" WidthRequest="60" HeightRequest="60"/>
-                                    <Label Text="{Binding Name}" FontSize="12" HorizontalOptions="Center"/>
+                                    <Image Source="{Binding SpriteUrl}"
+                                           WidthRequest="60"
+                                           HeightRequest="60" />
+                                    <Label Text="{Binding Name}"
+                                           FontSize="12"
+                                           HorizontalOptions="Center"/>
                                 </StackLayout>
                             </Frame>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
+
                 </CollectionView>
+
 
             </VerticalStackLayout>
 
-            <Grid Grid.Row="1" Grid.ColumnSpan="2" 
+            <Grid x:Name="pokemonDetailsGrid" Grid.Row="1" 
+                  Grid.ColumnSpan="2"                   
+                  IsVisible="False"                  
                   HorizontalOptions="Center" 
                   VerticalOptions="Center" 
                   ColumnSpacing="10">
 
                 <Grid.ColumnDefinitions>
+                    
                     <ColumnDefinition Width="Auto" />
+                    
                     <ColumnDefinition Width="Auto" />
+                    
                 </Grid.ColumnDefinitions>
 
                 <VerticalStackLayout Grid.Column="0" Spacing="25" Padding="10" 
