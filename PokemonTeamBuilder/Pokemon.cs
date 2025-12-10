@@ -15,6 +15,7 @@ namespace PokemonTeamBuilder
         public List<PokemonWeaknessWrapper> Weaknesses { get; set; }
         public List<PokemonStat> BaseTotal { get; set; }
 
+        // Need to move to sperate class
         [JsonPropertyName("stats")]
         public List<PokemonStat> Stats { get; set; }
 
@@ -27,6 +28,8 @@ namespace PokemonTeamBuilder
 
     public class PokemonSprites
     {
+        [JsonPropertyName("front_default")]
+        public string FrontDefault { get; set; }
         public SpritesVersions Versions { get; set; }
     }
 
@@ -34,6 +37,18 @@ namespace PokemonTeamBuilder
     {
         [JsonPropertyName("generation-i")]
         public GenerationI GenerationI { get; set; }
+
+        [JsonPropertyName("generation-ii")]
+        public GenerationI GenerationII { get; set; }
+
+        [JsonPropertyName("generation-iii")]
+        public GenerationI GenerationIIII { get; set; }
+
+        [JsonPropertyName("generation-iv")]
+        public GenerationI GenerationIV { get; set; }
+
+        [JsonPropertyName("generation-v")]
+        public GenerationI GenerationV { get; set; }
     }
 
     public class GenerationI
@@ -48,11 +63,62 @@ namespace PokemonTeamBuilder
         public string FrontDefault { get; set; }
     }
 
+    public class GenerationII
+    {
+        [JsonPropertyName("crystal")]
+        public CrystalSprites Crystal { get; set; }
+
+    }
+
+    public class CrystalSprites
+    {
+        [JsonPropertyName("front_default")]
+        public string FrontDefault { get; set; }
+    }
+
     public class PokemonTypeWrapper
     {
         public PokemonType Type { get; set; }
     }
 
+    public class GenerationIII
+    {
+        [JsonPropertyName("emerald")]
+        public EmeraldSprites Emerald { get; set; }
+    }
+
+    public class EmeraldSprites
+    {
+        [JsonPropertyName("front_default")]
+        public string FrontDefault { get; set; }
+    }
+
+    public class GenerationIV
+    {
+        [JsonPropertyName("platinum")]
+        public PlatinumSprites Platinum { get; set; }
+    }
+
+    public class PlatinumSprites
+    {
+        [JsonPropertyName("front_default")]
+        public string FrontDefault { get; set; }
+    }
+
+    public class GenerationV
+    {
+        [JsonPropertyName("black-white")]
+        public BlackWhiteSprites BlackWhite { get; set; }
+    }
+
+    public class BlackWhiteSprites
+    {
+        [JsonPropertyName("front_default")]
+        public string FrontDefault { get; set; }
+    }
+
+
+    //-----------------------------------------------------------
     public class PokemonType
     {
         public string Name { get; set; }
@@ -99,7 +165,12 @@ namespace PokemonTeamBuilder
         */
         private static Dictionary<string, Dictionary<string, float>> effectivenessChart = new()
         {
-            ["normal"] = new() { ["rock"] = 0.5f, ["ghost"] = 0f, ["steel"] = 0.5f },
+            ["normal"] = new() 
+            { 
+                ["rock"] = 0.5f, 
+                ["ghost"] = 0f, 
+                ["steel"] = 0.5f 
+            },
 
             ["fire"] = new()
             {
@@ -238,9 +309,20 @@ namespace PokemonTeamBuilder
                 ["steel"] = 0.5f
             },
 
-            ["ghost"] = new() { ["normal"] = 0f, ["psychic"] = 2f, ["ghost"] = 2f, ["dark"] = 0.5f, ["steel"] = 0.5f },
+            ["ghost"] = new() 
+            { 
+                ["normal"] = 0f, 
+                ["psychic"] = 2f,
+                ["ghost"] = 2f, 
+                ["dark"] = 0.5f, 
+                ["steel"] = 0.5f
+            },
 
-            ["dragon"] = new() { ["dragon"] = 2f, ["steel"] = 0.5f },
+            ["dragon"] = new() 
+            { 
+                ["dragon"] = 2f,
+                ["steel"] = 0.5f
+            },
 
             ["dark"] = new()
             {
@@ -268,20 +350,23 @@ namespace PokemonTeamBuilder
 
             foreach (var attacker in pokemonTypes)
             {
+                // Skip if attacker type not found in chart
                 if (!effectivenessChart.ContainsKey(attacker))
                     continue;
-
+                // Loop through defender types and their effectiveness
                 foreach (var defender in effectivenessChart[attacker])
                 {
+                    // Only consider strengths (effectiveness > 1)
                     if (defender.Value > 1f)
                     {
+                        // If defender type not already in strengths, add it
                         if (!strengths.ContainsKey(defender.Key))
                         {
                             strengths[defender.Key] = defender.Value;
                         }
                         else
-                        {                     
-                            strengths[defender.Key] = Math.Max(strengths[defender.Key], defender.Value);
+                        {
+                            strengths[defender.Key] *= defender.Value;
                         }
                     }
                 }

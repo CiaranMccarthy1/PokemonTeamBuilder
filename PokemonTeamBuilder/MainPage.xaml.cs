@@ -11,9 +11,11 @@ namespace PokemonTeamBuilder
         private List<string> allPokemonNames = GetGen1Pokemon();
         private string currentPokemonName;
 
-        public MainPage()
+        //takes HttpClient as parameter
+        public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
+            _httpClient = httpClient;
   
         }
 
@@ -33,6 +35,7 @@ namespace PokemonTeamBuilder
             {
                 Pokemon pokemon;
 
+                // Check if the Pokémon is marked as a favorite and if it's cached
                 var favourite = await PokemonCache.GetFavorites();
                 bool isFavourite = favourite.Contains(query);
 
@@ -42,21 +45,22 @@ namespace PokemonTeamBuilder
                 }
                 else
                 {
+                    // Gets pokemon data from API
                     pokemon = await PokemonData(query);
                 }
 
                 if (pokemon != null)
                 {
+                    // Load sprite from cache if available 
                     var cachedSpritePath = PokemonCache.GetCachedSprite(query);
 
                     if (!string.IsNullOrEmpty(cachedSpritePath))
                     {
                         pokemonSprite.Source = cachedSpritePath;
-                        DisplayAlert("Successful", "Loaded sprite from cache", "OK");
                     }
                     else
                     {
-                        string spriteUrl = pokemon.Sprites?.Versions?.GenerationI?.RedBlue?.FrontDefault;
+                        string spriteUrl = pokemon.Sprites?.FrontDefault;
 
                         if (!string.IsNullOrEmpty(spriteUrl))
                         {
@@ -69,6 +73,7 @@ namespace PokemonTeamBuilder
                             return;
                         }
                     }
+                    //Formats Name and types 
                     string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
                     string types = pokemon.Types != null ? string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) : "N/A";
 
@@ -94,12 +99,13 @@ namespace PokemonTeamBuilder
             {
                 await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
             }
-
+            // Clear search bar after search
             searchBar.Text = string.Empty;
         }
 
         private async Task<Pokemon> PokemonData(string name)
         {
+            // API endpoint to get pokemon data
             string url = $"https://pokeapi.co/api/v2/pokemon/{name}";
 
             var response = await _httpClient.GetAsync(url);
@@ -107,13 +113,16 @@ namespace PokemonTeamBuilder
             if (!response.IsSuccessStatusCode)
                 throw new Exception("Pokémon not found");
 
+            // Deserialize JSON response to string
             var json = await response.Content.ReadAsStringAsync();
 
             var pokemon = JsonSerializer.Deserialize<Pokemon>(json, new JsonSerializerOptions
             {
+                // make deserialization case insensitive
                 PropertyNameCaseInsensitive = true
             });
 
+            // Calculate strengths and weaknesses based on types
             if (pokemon != null && pokemon.Types != null)
             {
                 var pokemonTypeNames = pokemon.Types.Select(t => t.Type.Name).ToList();
@@ -135,11 +144,13 @@ namespace PokemonTeamBuilder
                 return;
             }
 
+            // gets 10 pokeomon names that start with the query
             var suggestions = allPokemonNames
                               .Where(name => name.StartsWith(query))
                               .Take(10)
                               .ToList();
 
+            // hides if seatch abr empty or no suggestions
             suggestionListView.IsVisible = suggestions.Count > 0;
 
             suggestionListView.ItemsSource = suggestions;
@@ -153,13 +164,13 @@ namespace PokemonTeamBuilder
             string selectedPokemon = e.SelectedItem.ToString();
 
             searchBar.Text = selectedPokemon;
-
+            // Trigger search by passing null 
             OnSearchBarPressed(null, null);
 
             suggestionListView.SelectedItem = null;
         }
 
-
+        // Need to move to json file
         public static List<string> GetGen1Pokemon()
         {
             return new List<string>
@@ -199,8 +210,10 @@ namespace PokemonTeamBuilder
 
             try
             {
+                // loads current favourites to memory
                 var favourites = await PokemonCache.GetFavorites();
 
+                // toggles favourite status
                 if (favourites.Contains(currentPokemonName))
                 {
                     favourites.Remove(currentPokemonName);
@@ -212,9 +225,9 @@ namespace PokemonTeamBuilder
                     favourites.Add(currentPokemonName);
                     var pokemon = await PokemonData(currentPokemonName);
                     await PokemonCache.CachePokemon(pokemon);
-                    await PokemonCache.SaveFavorites(favourites);
                     pokemonFavouriteButton.Text = "Favourite";
                 }
+                // updates favorites file
                 await PokemonCache.SaveFavorites(favourites);
             }
             catch (Exception ex)
@@ -227,6 +240,7 @@ namespace PokemonTeamBuilder
 
         private void ClearPokemonDisplay()
         {
+            // Resets all display elements
             pokemonSprite.Source = null;
             pokemonNameLabel.Text = string.Empty;
             pokemonHeightLabel.Text = string.Empty;
@@ -246,7 +260,7 @@ namespace PokemonTeamBuilder
                 return "Strengths: None";
             }
 
-           
+            // lambda to get and format each strength type and multiplier
             var formattedList = strengths
                 .OrderByDescending(s => s.Multiplier)
                 .Select(s => $"{char.ToUpper(s.Type[0]) + s.Type.Substring(1)} ({s.Multiplier:0.##}x)");
@@ -261,7 +275,7 @@ namespace PokemonTeamBuilder
                 return "Weaknesses: None";
             }
 
-            
+            // formatting each weakness type and multiplier
             var formattedList = weaknesses
                 .OrderByDescending(w => w.Multiplier)
                 .Select(w => $"{char.ToUpper(w.Type[0]) + w.Type.Substring(1)} ({w.Multiplier:0.##}x)");

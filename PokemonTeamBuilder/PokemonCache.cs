@@ -51,6 +51,7 @@ namespace PokemonTeamBuilder
         }
         public static bool IsCached(string name)
         {
+            InitializeFolders();   
             var filePath = System.IO.Path.Combine(cacheFolder, $"{name.ToLower()}.json");
             return File.Exists(filePath);
         }
