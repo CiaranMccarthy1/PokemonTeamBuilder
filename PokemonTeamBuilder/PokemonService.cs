@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -55,7 +56,7 @@ namespace PokemonTeamBuilder
 
             var json = await response.Content.ReadAsStringAsync();
             var data = JsonSerializer.Deserialize<PokemonListResponse>(json, JsonOptions);
-
+            
             return data?.Results?.Select(p => p.Name).ToList() ?? new List<string>();
         }
     }

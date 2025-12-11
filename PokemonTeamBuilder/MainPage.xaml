@@ -15,19 +15,19 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <VerticalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
+        <VerticalStackLayout Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Spacing="10">
 
             <SearchBar x:Name="searchBar"
                         Placeholder="Search items..."
                         TextChanged="searchBar_TextChanged"
                         SearchButtonPressed="OnSearchBarPressed"
-                        HorizontalOptions="FillAndExpand" />
+                        HorizontalOptions="Fill" />
 
             <ListView x:Name="suggestionListView"
                         ItemSelected="suggestionListView_ItemSelected"
                         HeightRequest="100"
                         IsVisible="False"
-                        HorizontalOptions="FillAndExpand" />
+                        HorizontalOptions="Fill" />
 
 
             <CollectionView x:Name="allPokemonCollectionView"
@@ -36,16 +36,16 @@
                             IsVisible="True"
                             SelectionMode="Single"
                             SelectionChanged="AllPokemonCollectionView_SelectionChanged"
-                            HeightRequest="-1"
                             RemainingItemsThreshold="5" 
                             RemainingItemsThresholdReached="AllPokemonCollectionView_RemainingItemsThresholdReached">
 
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                    <GridItemsLayout Orientation="Vertical" Span="4" />
                 </CollectionView.ItemsLayout>
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
+                        <!-- Change later-->
                         <Frame Padding="5" Margin="5" HasShadow="False" BorderColor="LightGray">
                             <StackLayout HorizontalOptions="Center">
                                 <Image Source="{Binding SpriteUrl}"
