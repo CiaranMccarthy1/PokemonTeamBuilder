@@ -45,9 +45,9 @@ namespace PokemonTeamBuilder
             return pokemon;
         }
 
-        public async Task<List<string>> GetAllPokemonNames()
+        public async Task<List<string>> GetAllPokemonNames(int limit = 50, int offset = 0)
         {
-            string url = $"{BaseUrl}pokemon?limit={PokemonLimit}";
+            string url = $"{BaseUrl}pokemon?limit={limit}&offset={offset}";
             var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)

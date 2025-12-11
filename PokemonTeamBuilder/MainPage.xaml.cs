@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
-using System.Text;
+using System.Collections.ObjectModel; 
 
 namespace PokemonTeamBuilder
 {
@@ -9,21 +9,39 @@ namespace PokemonTeamBuilder
 
         private readonly PokemonService pokemonService;
         private string currentPokemonName;
-        public List<PokemonGridItem> AllPokemonNames = new();
+        public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
+        private bool isInitialized = false;
+        private const int pageSize = 50; 
+        private int offset = 0;         
+        private bool isLoading = false;
 
         //takes HttpClient as parameter
         public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
             pokemonService = new PokemonService(httpClient);
-            _ = LoadAllPokemonForGrid();
 
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            if (!isInitialized)
+            {
+                await LoadAllPokemonForGrid();
+                isInitialized = true;
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            pokemonSprite.Source = null;
         }
 
         private async void OnSearchBarPressed(object sender, EventArgs e)
         {
-            ClearPokemonDisplay();
-
             string query = searchBar.Text?.Trim().ToLower() ?? string.Empty;
 
             if (string.IsNullOrEmpty(query))
@@ -34,11 +52,10 @@ namespace PokemonTeamBuilder
 
             try
             {
-                Pokemon pokemon;
-
                 // Check if the Pokémon is marked as a favorite and if it's cached
-                var favourite = await PokemonCache.GetFavorites();
-                bool isFavourite = favourite.Contains(query);
+                var favourites = await PokemonCache.GetFavorites();
+                bool isFavourite = favourites.Contains(query);
+                Pokemon pokemon;
 
                 if (isFavourite && PokemonCache.IsCached(query))
                 {
@@ -46,56 +63,16 @@ namespace PokemonTeamBuilder
                 }
                 else
                 {
-                    // Gets pokemon data from API
                     pokemon = await pokemonService.GetPokemon(query);
                 }
 
                 if (pokemon != null)
                 {
-                    // Load sprite from cache if available 
-                    var cachedSpritePath = PokemonCache.GetCachedSprite(query);
-
-                    if (!string.IsNullOrEmpty(cachedSpritePath))
-                    {
-                        pokemonSprite.Source = cachedSpritePath;
-                    }
-                    else
-                    {
-                        string spriteUrl = pokemon.Sprites?.FrontDefault;
-
-                        if (!string.IsNullOrEmpty(spriteUrl))
-                        {
-                            pokemonSprite.Source = spriteUrl;
-                        }
-                        else
-                        {
-                            await DisplayAlert("Error", "Pokemon sprite not found", "OK");
-                            pokemonSprite.Source = null;
-                            return;
-                        }
-                    }
-                    allPokemonCollectionView.IsVisible = false;
-                    pokemonDetailsGrid.IsVisible = true;
-                    
-                    //Formats Name and types 
-                    string name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
-                    string types = pokemon.Types != null ? string.Join(", ", pokemon.Types.Select(t => t.Type.Name)) : "N/A";
-
-                    pokemonNameLabel.Text = $"Name: {name ?? "N/A"}";
-                    pokemonHeightLabel.Text = $"Height: {pokemon?.Height / 10 ?? 0} M";
-                    pokemonWeightLabel.Text = $"Weight: {pokemon?.Weight / 10 ?? 0} KG";
-                    pokemonTypeLabel.Text = $"Types: {types ?? "N/A"}";
-                    pokemonStatLabel.Text = $"Base Stat Total: {pokemon.TotalBaseStats}";
-                    currentPokemonName = pokemon.Name.ToLower();
-                    pokemonFavouriteButton.Text = isFavourite ? "Favourite" : "Not favourite";
-                    pokemonFavouriteButton.IsVisible = true;
-                    pokemonStrenghtLabel.Text = FormatStrengths(pokemon.Strengths);
-                    pokemonWeaknessLabel.Text = FormatWeaknesses(pokemon.Weaknesses);
+                    await DisplayPokemon(pokemon, isFavourite);
                 }
                 else
                 {
                     await DisplayAlert("Error", "Pokémon data could not be retrieved.", "OK");
-
                 }
             }
 
@@ -105,6 +82,50 @@ namespace PokemonTeamBuilder
             }
             // Clear search bar after search
             searchBar.Text = string.Empty;
+        }
+
+        private async Task DisplayPokemon(Pokemon pokemon, bool isFavourite)
+        {
+            string query = pokemon.Name.ToLower();
+
+            // Load sprite from cache if available
+            var cachedSpritePath = PokemonCache.GetCachedSprite(query);
+            if (!string.IsNullOrEmpty(cachedSpritePath))
+            {
+                pokemonSprite.Source = cachedSpritePath;
+            }
+            else if (!string.IsNullOrEmpty(pokemon.Sprites?.FrontDefault))
+            {
+                pokemonSprite.Source = pokemon.Sprites.FrontDefault;
+            }
+            else
+            {
+                await DisplayAlert("Error", "Pokemon sprite not found", "OK");
+                pokemonSprite.Source = null;
+                return;
+            }
+
+            // Show details, hide grid
+            allPokemonCollectionView.IsVisible = false;
+            pokemonDetailsGrid.IsVisible = true;
+
+            // Format and display Pokemon data
+            string formattedName = FormatPokemonName(pokemon.Name);
+            string types = pokemon.Types != null
+                ? string.Join(", ", pokemon.Types.Select(t => FormatPokemonName(t.Type.Name)))
+                : "N/A";
+
+            pokemonNameLabel.Text = $"Name: {formattedName}";
+            pokemonHeightLabel.Text = $"Height: {pokemon.Height / 10.0} M";
+            pokemonWeightLabel.Text = $"Weight: {pokemon.Weight / 10.0} KG";
+            pokemonTypeLabel.Text = $"Types: {types}";
+            pokemonStatLabel.Text = $"Base Stat Total: {pokemon.TotalBaseStats}";
+            pokemonStrenghtLabel.Text = FormatStrengths(pokemon.Strengths);
+            pokemonWeaknessLabel.Text = FormatWeaknesses(pokemon.Weaknesses);
+
+            currentPokemonName = pokemon.Name.ToLower();
+            pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Not Favourite";
+            pokemonFavouriteButton.IsVisible = true;
         }
 
 
@@ -154,24 +175,24 @@ namespace PokemonTeamBuilder
 
             try
             {
-                // loads current favourites to memory
                 var favourites = await PokemonCache.GetFavorites();
-
-                // toggles favourite status
+             
                 if (favourites.Contains(currentPokemonName))
                 {
                     favourites.Remove(currentPokemonName);
                     PokemonCache.RemoveFromCache(currentPokemonName);
-                    pokemonFavouriteButton.Text = "Not favourite";
+                  
+                    pokemonFavouriteButton.Text = "☆ Add to Team";
                 }
                 else
                 {
                     favourites.Add(currentPokemonName);
                     var pokemon = await pokemonService.GetPokemon(currentPokemonName);
                     await PokemonCache.CachePokemon(pokemon);
-                    pokemonFavouriteButton.Text = "Favourite";
+                    
+                    pokemonFavouriteButton.Text = "★ Add to Team";
                 }
-                // updates favorites file
+               
                 await PokemonCache.SaveFavorites(favourites);
             }
             catch (Exception ex)
@@ -227,24 +248,61 @@ namespace PokemonTeamBuilder
             return $"Weakness: {string.Join(", ", formattedList)}";
         }
 
+        private static string FormatPokemonName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "N/A";
+
+            return char.ToUpper(name[0]) + name.Substring(1);
+        }
+
         public class PokemonGridItem
         {
             public string Name { get; set; }
-            public string SpriteUrl { get; set; }
+            public int PokemonId { get; set; }
+            public string SpriteUrl => $"{PokemonService.SpriteBaseUrl}{PokemonId}.png";
         }
 
         private async Task LoadAllPokemonForGrid()
         {
-            var names = await pokemonService.GetAllPokemonNames();
-            AllPokemonNames = names
-                .Select((name, idx) => new PokemonGridItem
+            if (isLoading || offset >= PokemonService.PokemonLimit)
+                return;
+
+            isLoading = true;
+
+            try
+            {
+                var names = await pokemonService.GetAllPokemonNames(limit: pageSize, offset: offset);
+
+                int currentId = offset + 1;
+
+                var newPokemonItems = names
+                    .Select(name => new PokemonGridItem
+                    {
+                        Name = FormatPokemonName(name),
+                        PokemonId = currentId++
+                    })
+                    .ToList();
+
+                if (allPokemonCollectionView.ItemsSource == null)
                 {
-                    Name = char.ToUpper(name[0]) + name.Substring(1),
-                    SpriteUrl = $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{idx + 1}.png"
-                })
-                .ToList();
-            allPokemonCollectionView.ItemsSource = null;
-            allPokemonCollectionView.ItemsSource = AllPokemonNames;
+                    
+                    allPokemonCollectionView.ItemsSource = AllPokemonNames;
+                }
+
+              
+                foreach (var item in newPokemonItems)
+                {
+                    AllPokemonNames.Add(item); 
+                }
+
+                offset += pageSize;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
+            }
+            isLoading = false;
         }
 
         private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -255,6 +313,11 @@ namespace PokemonTeamBuilder
                 OnSearchBarPressed(null, null);
                 allPokemonCollectionView.SelectedItem = null;
             }
+        }
+
+        private async void AllPokemonCollectionView_RemainingItemsThresholdReached(object sender, EventArgs e)
+        {
+            await LoadAllPokemonForGrid();
         }
 
     }
