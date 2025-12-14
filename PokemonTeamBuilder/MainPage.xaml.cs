@@ -11,7 +11,7 @@ namespace PokemonTeamBuilder
         private string currentPokemonName;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
         private bool isInitialized = false;
-        private const int pageSize = 50; 
+        private const int pageSize = 100; 
         private int offset = 0;         
         private bool isLoading = false;
 
@@ -131,7 +131,7 @@ namespace PokemonTeamBuilder
 
         private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string query = e.NewTextValue.ToLower();
+            string query = e.NewTextValue?.ToLower() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -182,15 +182,15 @@ namespace PokemonTeamBuilder
                     favourites.Remove(currentPokemonName);
                     PokemonCache.RemoveFromCache(currentPokemonName);
                   
-                    pokemonFavouriteButton.Text = "☆ Add to Team";
+                    pokemonFavouriteButton.Text = "☆ Unfavourite";
                 }
                 else
                 {
                     favourites.Add(currentPokemonName);
                     var pokemon = await pokemonService.GetPokemon(currentPokemonName);
                     await PokemonCache.CachePokemon(pokemon);
-                    
-                    pokemonFavouriteButton.Text = "★ Add to Team";
+
+                    pokemonFavouriteButton.Text = "★ Favourite";
                 }
                
                 await PokemonCache.SaveFavorites(favourites);
@@ -272,25 +272,23 @@ namespace PokemonTeamBuilder
 
             try
             {
-                var names = await pokemonService.GetAllPokemonNames(limit: pageSize, offset: offset);
+                var nameAndUrls = await pokemonService.GetAllPokemonNames(limit: pageSize, offset: offset);
 
                 int currentId = offset + 1;
 
-                var newPokemonItems = names
-                    .Select(name => new PokemonGridItem
+                var newPokemonItems = nameAndUrls
+                    .Select(item => new PokemonGridItem
                     {
-                        Name = FormatPokemonName(name),
-                        PokemonId = currentId++
+                        Name = FormatPokemonName(item.Name),
+                        PokemonId = ExtractIdFromUrl(item.Url)
                     })
                     .ToList();
 
                 if (allPokemonCollectionView.ItemsSource == null)
                 {
-                    
                     allPokemonCollectionView.ItemsSource = AllPokemonNames;
                 }
 
-              
                 foreach (var item in newPokemonItems)
                 {
                     AllPokemonNames.Add(item); 
@@ -323,8 +321,20 @@ namespace PokemonTeamBuilder
         protected override void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
-            allPokemonCollectionView.HeightRequest = height - 400;
+            allPokemonCollectionView.HeightRequest = height -80;
         }
 
+        private int ExtractIdFromUrl(string url)
+        {
+            var parts = url.TrimEnd('/').Split('/');
+            return int.Parse(parts[^1]);
+        }
+
+        public void OnBackButtonClicked(object sender, EventArgs e)
+        {
+            allPokemonCollectionView.IsVisible = true;
+            pokemonDetailsGrid.IsVisible = false;
+            ClearPokemonDisplay();
+        }
     }
 }

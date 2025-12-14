@@ -36,7 +36,7 @@
                             IsVisible="True"
                             SelectionMode="Single"
                             SelectionChanged="AllPokemonCollectionView_SelectionChanged"
-                            RemainingItemsThreshold="5" 
+                            RemainingItemsThreshold="16" 
                             RemainingItemsThresholdReached="AllPokemonCollectionView_RemainingItemsThresholdReached">
 
                 <CollectionView.ItemsLayout>
@@ -64,23 +64,32 @@
 
         </VerticalStackLayout>
 
-        <Grid x:Name="pokemonDetailsGrid" Grid.Row="1" 
-                Grid.ColumnSpan="2"                   
+        <Grid x:Name="pokemonDetailsGrid" Grid.Row="0" 
+                Padding="10"
+                Grid.ColumnSpan="2" 
+                Grid.RowSpan="2"
                 IsVisible="False"                  
                 HorizontalOptions="Center" 
                 VerticalOptions="Center" 
                 ColumnSpacing="10">
 
+
             <Grid.ColumnDefinitions>
 
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
 
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
 
             </Grid.ColumnDefinitions>
 
             <VerticalStackLayout Grid.Column="0" Spacing="25" Padding="10" 
                                     HorizontalOptions="Center" VerticalOptions="Center">
+
+                <Button x:Name="backButton"
+                        Text="Back"
+                        FontSize="15"
+                        Clicked="OnBackButtonClicked"
+                        HorizontalOptions="Start" />
 
                 <Image x:Name="pokemonSprite"
                         WidthRequest="200"

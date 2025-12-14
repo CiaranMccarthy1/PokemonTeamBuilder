@@ -58,6 +58,7 @@ namespace PokemonTeamBuilder
 
         public static async Task<Pokemon?> GetCachedPokemon(string name)
         {
+            InitializeFolders();
             try
             {
                 var filePath = System.IO.Path.Combine(cacheFolder, $"{name.ToLower()}.json");
@@ -82,7 +83,7 @@ namespace PokemonTeamBuilder
         public static async Task CachePokemon(Pokemon pokemon)
         {
 
-
+            InitializeFolders();
             try
             {
             
@@ -105,6 +106,7 @@ namespace PokemonTeamBuilder
 
         public static async Task CacheSprite(Pokemon pokemon)
         {
+            InitializeFolders();
             try
             {
                 string spriteUrl = pokemon.Sprites?.Versions?.GenerationI?.RedBlue?.FrontDefault;
@@ -126,6 +128,7 @@ namespace PokemonTeamBuilder
 
         public static void RemoveFromCache(string name)
         {
+            InitializeFolders();
             try
             {
                 var filePath = System.IO.Path.Combine(cacheFolder, $"{name.ToLower()}.json");

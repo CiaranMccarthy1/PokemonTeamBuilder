@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static PokemonTeamBuilder.MainPage;
 
 namespace PokemonTeamBuilder
 {
@@ -25,7 +24,7 @@ namespace PokemonTeamBuilder
             _httpClient = httpClient;
         }
 
-        public async Task<Pokemon> GetPokemon(string name)
+        public async Task<Pokemon?> GetPokemon(string name)
         {
             string url = $"{BaseUrl}pokemon/{name}";
             var response = await _httpClient.GetAsync(url);
@@ -46,29 +45,33 @@ namespace PokemonTeamBuilder
             return pokemon;
         }
 
-        public async Task<List<string>> GetAllPokemonNames(int limit = 50, int offset = 0)
+        public async Task<List<PokemonListItem>> GetAllPokemonNames(int limit = 50, int offset = 0)
         {
             string url = $"{BaseUrl}pokemon?limit={limit}&offset={offset}";
             var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
-                return new List<string>();
+                return new List<PokemonListItem>();
 
             var json = await response.Content.ReadAsStringAsync();
             var data = JsonSerializer.Deserialize<PokemonListResponse>(json, JsonOptions);
-            
-            return data?.Results?.Select(p => p.Name).ToList() ?? new List<string>();
+
+            return data?.Results ?? new List<PokemonListItem>();
         }
     }
 
     public class PokemonListResponse
     {
-        public List<PokemonListItem> Results { get; set; }
+        public List<PokemonListItem> Results { get; set; } = new();
     }
 
     public class PokemonListItem
     {
-        public string Name { get; set; }
-        public string Url { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
     }
+
+
 }
+
+
