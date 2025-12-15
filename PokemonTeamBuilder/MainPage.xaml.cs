@@ -329,12 +329,6 @@ namespace PokemonTeamBuilder
             allPokemonCollectionView.HeightRequest = height -80;
         }
 
-        private int ExtractIdFromUrl(string url)
-        {
-            var parts = url.TrimEnd('/').Split('/');
-            return int.Parse(parts[^1]);
-        }
-
         public void OnBackButtonClicked(object sender, EventArgs e)
         {
             allPokemonCollectionView.IsVisible = true;

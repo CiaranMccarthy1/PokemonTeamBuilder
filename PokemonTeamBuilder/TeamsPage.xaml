@@ -6,6 +6,35 @@
 
     <Grid>
         <Grid x:Name="teamsListView" RowDefinitions="Auto,*">
+            <Label Grid.Row="0"
+                   Text="Pokemon team builder"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,20,0,20" />
+
+            <ScrollView Grid.Row="1">
+                <Grid x:Name="teamGrid"
+                      Padding="20"
+                      ColumnSpacing="20"
+                      RowSpacing="20"
+                      ColumnDefinitions="*,*,*"
+                      RowDefinitions="Auto, Auto">
+                </Grid>
+            </ScrollView>
+
+            <Button Grid.Row="1"
+                    Text="+"
+                    FontSize="32"
+                    WidthRequest="60"
+                    HeightRequest="60"
+                    CornerRadius="30"
+                    BackgroundColor="{StaticResource PrimaryColor}"
+                    TextColor="White"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="0,0,20,20"
+                    Clicked="OnAddTeamClicked" />
         </Grid>
 
         <Grid x:Name="teamDetailView"
@@ -15,6 +44,7 @@
               Padding="20"
               RowDefinitions="Auto,*" 
               ColumnDefinitions="*,*" >
+
             <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,20">
                 <Button Grid.Column="0"
                         Text="← Back"

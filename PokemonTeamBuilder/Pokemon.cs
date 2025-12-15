@@ -163,7 +163,7 @@ namespace PokemonTeamBuilder
          * 0.5f = not very effective
          * 2f = super effective
         */
-        private static Dictionary<string, Dictionary<string, float>> effectivenessChart = new()
+        public static Dictionary<string, Dictionary<string, float>> effectivenessChart = new()
         {
             ["normal"] = new() 
             { 
@@ -181,7 +181,8 @@ namespace PokemonTeamBuilder
                 ["bug"] = 2f,
                 ["rock"] = 0.5f,
                 ["dragon"] = 0.5f,
-                ["steel"] = 2f
+                ["steel"] = 2f,
+                ["fairy"] = 0.5f
             },
 
             ["water"] = new()
@@ -251,7 +252,8 @@ namespace PokemonTeamBuilder
                 ["ground"] = 0.5f,
                 ["rock"] = 0.5f,
                 ["ghost"] = 0.5f,
-                ["steel"] = 0f
+                ["steel"] = 0f,
+                ["fairy"] = 2f
             },
 
             ["ground"] = new()
@@ -321,7 +323,8 @@ namespace PokemonTeamBuilder
             ["dragon"] = new() 
             { 
                 ["dragon"] = 2f,
-                ["steel"] = 0.5f
+                ["steel"] = 0.5f,
+                ["fairy"] = 0f  
             },
 
             ["dark"] = new()
@@ -340,6 +343,17 @@ namespace PokemonTeamBuilder
                 ["electric"] = 0.5f,
                 ["ice"] = 2f,
                 ["rock"] = 2f,
+                ["steel"] = 0.5f,
+                ["fairy"] = 2f
+            },
+
+            ["fairy"] = new()
+            {
+                ["fire"] = 0.5f,
+                ["fighting"] = 2f,
+                ["poison"] = 0.5f,
+                ["dragon"] = 2f,
+                ["dark"] = 2f,
                 ["steel"] = 0.5f
             }
         };

@@ -2,8 +2,8 @@ using Microsoft.Maui.Controls.Shapes;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.IO;
-using System.Linq; // Added for LINQ extensions like .Sum() and .Select()
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace PokemonTeamBuilder;
 
@@ -29,7 +29,6 @@ public partial class TeamsPage : ContentPage
         LoadTeams();
         DisplayTeams();
 
-        // Refresh current team if viewing one
         if (currentTeam != null && teamDetailView.IsVisible)
         {
             LoadTeamDetail(currentTeam);
@@ -64,7 +63,6 @@ public partial class TeamsPage : ContentPage
                     teams.Add(team);
                 }
             }
-
             teams = new ObservableCollection<PokemonTeam>(teams.OrderBy(t => t.Id));
         }
         catch (Exception ex)
@@ -75,7 +73,6 @@ public partial class TeamsPage : ContentPage
 
     private void DisplayTeams()
     {
-        // FIX: Replaced 'teamMembersContainer' with 'teamGrid' for the list of team cards.
         teamGrid.Children.Clear();
 
         int row = 0;
@@ -190,7 +187,6 @@ public partial class TeamsPage : ContentPage
                 Margin = new Thickness(10, 10, 0, 0)
             };
 
-            // Display actual Pokemon sprites
             for (int i = 0; i < 6; i++)
             {
                 if (i < team.Pokemon.Count)
@@ -245,22 +241,20 @@ public partial class TeamsPage : ContentPage
         {
             currentTeam = team;
 
-            // Show team detail view
             teamsListView.IsVisible = false;
             teamDetailView.IsVisible = true;
 
-            // Set team name
+
             teamNameLabel.Text = team.Name;
 
-            // Clear existing members
+
             teamMembersContainer.Children.Clear();
 
-            // Handle empty team case
+
             if (team.Pokemon == null || team.Pokemon.Count == 0)
             {
                 emptyTeamMessage.IsVisible = true;
 
-                // Reset summary labels for an empty team
                 totalScoreLabel.Text = "Total Score: N/A";
                 teamWeaknessesLabel.Text = "Team Weaknesses: N/A";
                 teamStrengthsLabel.Text = "Team Strengths: N/A";
@@ -270,7 +264,6 @@ public partial class TeamsPage : ContentPage
 
             emptyTeamMessage.IsVisible = false;
 
-            // Load each team member with full details and collect them
             var fullTeamMembers = new List<Pokemon>();
 
             foreach (var teamPokemon in team.Pokemon)
@@ -288,7 +281,6 @@ public partial class TeamsPage : ContentPage
 
                 if (pokemon != null)
                 {
-                    // Store the fully loaded Pokemon object
                     fullTeamMembers.Add(pokemon);
 
                     var memberView = CreateTeamMemberView(pokemon);
@@ -296,7 +288,6 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
-            // --- NEW LOGIC: Calculate and Display Team Summary ---
             var summary = CalculateTeamSummary(fullTeamMembers);
 
             totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
@@ -309,39 +300,33 @@ public partial class TeamsPage : ContentPage
         }
     }
 
-    // --- Team Summary Calculation Method ---
     private TeamSummary CalculateTeamSummary(List<Pokemon> teamMembers)
     {
         var summary = new TeamSummary();
 
-        // 1. Calculate Total Base Stats
         int totalBaseStatSum = teamMembers.Sum(p => p.TotalBaseStats);
         summary.TotalScore = totalBaseStatSum;
 
-        // 2. Calculate Combined Defensive Effectiveness
-
-        // NOTE: This relies on PokemonTypeEffectiveness.effectivenessChart being public static.
         var allAttackerTypes = PokemonTypeEffectiveness.effectivenessChart.Keys;
 
         var combinedDefense = new Dictionary<string, float>();
 
         foreach (var attackingType in allAttackerTypes)
         {
-            // Start low, looking for the maximum weakness (e.g., 4.0x)
+
             float highestMultiplier = 0.0f;
 
             foreach (var pokemon in teamMembers)
             {
                 float pokemonDefenseMultiplier = 1f;
 
-                // Calculate the combined defense multiplier for this single Pokemon
-                // against the current attacking type
+
                 foreach (var defenseWrapper in pokemon.Types)
                 {
                     float singleDefenseEffectiveness = 1f;
                     string defenseType = defenseWrapper.Type.Name.ToLower();
 
-                    // Check effectiveness chart for explicit multiplier
+               
                     if (PokemonTypeEffectiveness.effectivenessChart.TryGetValue(attackingType, out var defenseDict) &&
                         defenseDict.TryGetValue(defenseType, out float multiplier))
                     {
@@ -351,8 +336,7 @@ public partial class TeamsPage : ContentPage
                     pokemonDefenseMultiplier *= singleDefenseEffectiveness;
                 }
 
-                // The team's overall defensive standing against this attacking type is the
-                // worst exposure (highest multiplier) found across all team members.
+
                 if (pokemonDefenseMultiplier > highestMultiplier)
                 {
                     highestMultiplier = pokemonDefenseMultiplier;
@@ -362,7 +346,7 @@ public partial class TeamsPage : ContentPage
             combinedDefense[attackingType] = highestMultiplier;
         }
 
-        // 3. Filter results into Strengths (Resistances/Immunities) and Weaknesses
+    
         var teamWeaknesses = combinedDefense
             .Where(d => d.Value > 1f)
             .OrderByDescending(d => d.Value)
@@ -536,7 +520,7 @@ public partial class TeamsPage : ContentPage
             return;
         }
 
-        string pokemonName = await DisplayPromptAsync("Add Pokémon", "Enter Pokémon name:", "Add", "Cancel");
+        string pokemonName = await DisplayPromptAsync("Add Pokémon", "Enter Pokémon name:", "Add", "Cancel", "Team Name");
 
         if (!string.IsNullOrWhiteSpace(pokemonName))
         {
@@ -617,6 +601,7 @@ public partial class TeamsPage : ContentPage
         {
             try
             {
+                // Uses .Max() which requires 'using System.Linq;'
                 int nextId = teams.Count > 0 ? teams.Max(t => t.Id) + 1 : 1;
 
                 var newTeam = new PokemonTeam
@@ -680,7 +665,7 @@ public partial class TeamsPage : ContentPage
 public class PokemonTeam
 {
     public int Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty; 
     public List<TeamPokemon> Pokemon { get; set; } = new List<TeamPokemon>();
     public int PokemonCount { get; set; }
     public DateTime CreatedDate { get; set; }
@@ -688,27 +673,16 @@ public class PokemonTeam
 
 public class TeamPokemon
 {
-    public string Name { get; set; }
-    public string SpriteUrl { get; set; }
-    public List<string> Types { get; set; }
+    public string Name { get; set; } = string.Empty; 
+    public string SpriteUrl { get; set; } = string.Empty; 
+    public List<string> Types { get; set; } = new List<string>();
     public int Level { get; set; }
 }
 
-// --- CLASS FOR TEAM SUMMARY RESULTS ---
+
 public class TeamSummary
 {
     public int TotalScore { get; set; }
     public List<string> Weaknesses { get; set; } = new List<string>();
     public List<string> Strengths { get; set; } = new List<string>();
 }
-
-// --- IMPORTANT NOTE ---
-/* For the CalculateTeamSummary method to compile, you must update 
-    the PokemonTypeEffectiveness class (in your other file) to make 
-    'effectivenessChart' accessible to this class.
-
-    Change: 
-        private static Dictionary<string, Dictionary<string, float>> effectivenessChart = new() 
-    To:
-        public static readonly Dictionary<string, Dictionary<string, float>> effectivenessChart = new()
-*/
