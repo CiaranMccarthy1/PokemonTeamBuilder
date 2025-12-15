@@ -272,17 +272,21 @@ namespace PokemonTeamBuilder
 
             try
             {
-                var nameAndUrls = await pokemonService.GetAllPokemonNames(limit: pageSize, offset: offset);
+                var newPokemonItems = new List<PokemonGridItem>();
 
-                int currentId = offset + 1;
+                for (int id = offset + 1; id <= (PokemonService.PokemonLimit); id++)
+                {
+                    var pokemon = await PokemonCache.GetCachedPokemonById(id);
 
-                var newPokemonItems = nameAndUrls
-                    .Select(item => new PokemonGridItem
+                    if (pokemon != null)
                     {
-                        Name = FormatPokemonName(item.Name),
-                        PokemonId = ExtractIdFromUrl(item.Url)
-                    })
-                    .ToList();
+                        newPokemonItems.Add(new PokemonGridItem
+                        {
+                            Name = FormatPokemonName(pokemon.Name),
+                            PokemonId = pokemon.Id
+                        });
+                    }
+                }
 
                 if (allPokemonCollectionView.ItemsSource == null)
                 {
@@ -291,7 +295,7 @@ namespace PokemonTeamBuilder
 
                 foreach (var item in newPokemonItems)
                 {
-                    AllPokemonNames.Add(item); 
+                    AllPokemonNames.Add(item);
                 }
 
                 offset += pageSize;
@@ -300,6 +304,7 @@ namespace PokemonTeamBuilder
             {
                 await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
             }
+
             isLoading = false;
         }
 
