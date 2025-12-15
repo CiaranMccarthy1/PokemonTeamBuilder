@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PokemonTeamBuilder.LoadingPage"
+             Title="Loading Pokemon">
+
+    <Grid Padding="20" RowSpacing="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackLayout Grid.Row="1" Spacing="15" VerticalOptions="Center">
+            <Image Source="pokeball.png"
+                   WidthRequest="100"
+                   HeightRequest="100"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Downloading Pokémon Database"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+            <Label Text="This only happens once!"
+                   FontSize="16"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+        </StackLayout>
+
+        <ProgressBar x:Name="downloadProgressBar"
+                     Grid.Row="2"
+                     Progress="0"
+                     HeightRequest="20"
+                     ProgressColor="{StaticResource PrimaryColor}" />
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto,*" ColumnSpacing="5">
+            <Label x:Name="progressLabel"
+                   Grid.Column="1"
+                   Text="0 / 1025"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+        </Grid>
+
+        <StackLayout Grid.Row="4" Spacing="5">
+            <Label x:Name="statusLabel"
+                   Text="Starting download..."
+                   FontSize="14"
+                   HorizontalOptions="Center" />
+
+            <Label x:Name="currentPokemonLabel"
+                   Text=""
+                   FontSize="12"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+        </StackLayout>
+    </Grid>
+
+</ContentPage>
