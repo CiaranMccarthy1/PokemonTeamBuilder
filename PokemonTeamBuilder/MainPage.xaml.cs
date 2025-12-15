@@ -11,9 +11,10 @@ namespace PokemonTeamBuilder
         private string currentPokemonName;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
         private bool isInitialized = false;
-        private const int pageSize = 100; 
+        private const int pageSize = 40; 
         private int offset = 0;         
         private bool isLoading = false;
+        public bool selectingPokemonForTeam = false;
 
         //takes HttpClient as parameter
         public MainPage(HttpClient httpClient)
@@ -273,8 +274,9 @@ namespace PokemonTeamBuilder
             try
             {
                 var newPokemonItems = new List<PokemonGridItem>();
+                int end = Math.Min(offset + pageSize, PokemonService.PokemonLimit);
 
-                for (int id = offset + 1; id <= (PokemonService.PokemonLimit); id++)
+                for (int id = offset + 1; id <= end; id++)
                 {
                     var pokemon = await PokemonCache.GetCachedPokemonById(id);
 
@@ -298,7 +300,7 @@ namespace PokemonTeamBuilder
                     AllPokemonNames.Add(item);
                 }
 
-                offset += pageSize;
+                offset += newPokemonItems.Count;
             }
             catch (Exception ex)
             {
@@ -334,6 +336,11 @@ namespace PokemonTeamBuilder
             allPokemonCollectionView.IsVisible = true;
             pokemonDetailsGrid.IsVisible = false;
             ClearPokemonDisplay();
+        }
+
+        public async Task OnAddTeamButtonClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync($"//TeamPage?selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
         }
     }
 }

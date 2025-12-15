@@ -212,7 +212,7 @@ namespace PokemonTeamBuilder
             InitializeFolders();
             var spritePath = Path.Combine(spritesFolder, $"{id}.png");
             if (File.Exists(spritePath))
-            {
+            { 
                 return spritePath;
             }
             return null;

@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 namespace PokemonTeamBuilder;
+[QueryProperty("SelectedPokemon", "selectedPokemon")]
 
 public partial class TeamsPage : ContentPage
 {
@@ -12,6 +13,16 @@ public partial class TeamsPage : ContentPage
     private string teamsFolder;
     private PokemonTeam currentTeam;
     private readonly PokemonService pokemonService;
+    private MainPage mainPage;
+    private string selectedPokemon;
+
+    public string SelectedPokemon
+    {
+        set
+        {
+            selectedPokemon = value;
+        }
+    }
 
     public TeamsPage()
     {
@@ -457,7 +468,9 @@ public partial class TeamsPage : ContentPage
             return;
         }
 
-        string pokemonName = await DisplayPromptAsync("Add Pokémon", "Enter Pokémon name:", "Add", "Cancel", "Team Name");
+        mainPage.selectingPokemonForTeam = true;
+        await Shell.Current.GoToAsync($"//MainPage");
+        string pokemonName = selectedPokemon;   
 
         if (!string.IsNullOrWhiteSpace(pokemonName))
         {
