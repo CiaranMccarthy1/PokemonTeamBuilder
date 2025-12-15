@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.IO;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace PokemonTeamBuilder;
 
@@ -288,11 +287,12 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
-            var summary = CalculateTeamSummary(fullTeamMembers);
+            var summary = pokemonService.CalculateTeamSummary(fullTeamMembers);
 
             totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
             teamWeaknessesLabel.Text = $"Team Weaknesses: {string.Join(", ", summary.Weaknesses)}";
             teamStrengthsLabel.Text = $"Team Strengths: {string.Join(", ", summary.Strengths)}";
+
         }
         catch (Exception ex)
         {
@@ -300,70 +300,7 @@ public partial class TeamsPage : ContentPage
         }
     }
 
-    private TeamSummary CalculateTeamSummary(List<Pokemon> teamMembers)
-    {
-        var summary = new TeamSummary();
-
-        int totalBaseStatSum = teamMembers.Sum(p => p.TotalBaseStats);
-        summary.TotalScore = totalBaseStatSum;
-
-        var allAttackerTypes = PokemonTypeEffectiveness.effectivenessChart.Keys;
-
-        var combinedDefense = new Dictionary<string, float>();
-
-        foreach (var attackingType in allAttackerTypes)
-        {
-
-            float highestMultiplier = 0.0f;
-
-            foreach (var pokemon in teamMembers)
-            {
-                float pokemonDefenseMultiplier = 1f;
-
-
-                foreach (var defenseWrapper in pokemon.Types)
-                {
-                    float singleDefenseEffectiveness = 1f;
-                    string defenseType = defenseWrapper.Type.Name.ToLower();
-
-               
-                    if (PokemonTypeEffectiveness.effectivenessChart.TryGetValue(attackingType, out var defenseDict) &&
-                        defenseDict.TryGetValue(defenseType, out float multiplier))
-                    {
-                        singleDefenseEffectiveness = multiplier;
-                    }
-
-                    pokemonDefenseMultiplier *= singleDefenseEffectiveness;
-                }
-
-
-                if (pokemonDefenseMultiplier > highestMultiplier)
-                {
-                    highestMultiplier = pokemonDefenseMultiplier;
-                }
-            }
-
-            combinedDefense[attackingType] = highestMultiplier;
-        }
-
     
-        var teamWeaknesses = combinedDefense
-            .Where(d => d.Value > 1f)
-            .OrderByDescending(d => d.Value)
-            .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.##}x)")
-            .ToList();
-
-        var teamStrengths = combinedDefense
-            .Where(d => d.Value < 1f)
-            .OrderBy(d => d.Value)
-            .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.##}x)")
-            .ToList();
-
-        summary.Weaknesses = teamWeaknesses.Count > 0 ? teamWeaknesses : new List<string> { "None" };
-        summary.Strengths = teamStrengths.Count > 0 ? teamStrengths : new List<string> { "None" };
-
-        return summary;
-    }
 
 
     private Grid CreateTeamMemberView(Pokemon pokemon)
@@ -601,7 +538,6 @@ public partial class TeamsPage : ContentPage
         {
             try
             {
-                // Uses .Max() which requires 'using System.Linq;'
                 int nextId = teams.Count > 0 ? teams.Max(t => t.Id) + 1 : 1;
 
                 var newTeam = new PokemonTeam

@@ -86,7 +86,8 @@
             </ScrollView>
 
             <StackLayout Grid.Row="1"
-                         Grid.ColumnSpan="2"
+                         Grid.Column="0"
+                         Grid.ColumnSpan="1"
                          x:Name="emptyTeamMessage"
                          IsVisible="False"
                          VerticalOptions="Center"
