@@ -2,6 +2,8 @@ using Microsoft.Maui.Controls.Shapes;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.IO;
+using System.Linq; // Added for LINQ extensions like .Sum() and .Select()
+using System.Threading.Tasks;
 
 namespace PokemonTeamBuilder;
 
@@ -9,10 +11,13 @@ public partial class TeamsPage : ContentPage
 {
     private ObservableCollection<PokemonTeam> teams;
     private string teamsFolder;
+    private PokemonTeam currentTeam;
+    private readonly PokemonService pokemonService;
 
     public TeamsPage()
     {
         InitializeComponent();
+        pokemonService = new PokemonService(new HttpClient());
         InitializeTeamsFolder();
         LoadTeams();
         DisplayTeams();
@@ -23,11 +28,16 @@ public partial class TeamsPage : ContentPage
         base.OnAppearing();
         LoadTeams();
         DisplayTeams();
+
+        // Refresh current team if viewing one
+        if (currentTeam != null && teamDetailView.IsVisible)
+        {
+            LoadTeamDetail(currentTeam);
+        }
     }
 
     private void InitializeTeamsFolder()
     {
-        
         teamsFolder = System.IO.Path.Combine(FileSystem.AppDataDirectory, "teams");
 
         if (!Directory.Exists(teamsFolder))
@@ -42,7 +52,6 @@ public partial class TeamsPage : ContentPage
 
         try
         {
-           
             var teamFiles = Directory.GetFiles(teamsFolder, "*.json");
 
             foreach (var file in teamFiles)
@@ -56,7 +65,6 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
-            
             teams = new ObservableCollection<PokemonTeam>(teams.OrderBy(t => t.Id));
         }
         catch (Exception ex)
@@ -65,15 +73,9 @@ public partial class TeamsPage : ContentPage
         }
     }
 
-    private int CountPokemonInJson(string json)
-    {
-      
-        if (string.IsNullOrEmpty(json) || json == "[]") return 0;
-        return json.Split(',').Length;
-    }
-
     private void DisplayTeams()
     {
+        // FIX: Replaced 'teamMembersContainer' with 'teamGrid' for the list of team cards.
         teamGrid.Children.Clear();
 
         int row = 0;
@@ -105,19 +107,27 @@ public partial class TeamsPage : ContentPage
             {
                 CornerRadius = new CornerRadius(40, 0, 0, 40)
             },
-            Padding = 15,   
+            Padding = 15,
             HeightRequest = 250
         };
 
         var mainLayout = new Grid
         {
             RowDefinitions = new RowDefinitionCollection
-    {
-        new RowDefinition { Height = GridLength.Auto },
-        new RowDefinition { Height = GridLength.Star }
-    }
+            {
+                new RowDefinition { Height = GridLength.Auto },
+                new RowDefinition { Height = GridLength.Star }
+            }
         };
 
+        var headerGrid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitionCollection
+            {
+                new ColumnDefinition { Width = GridLength.Star },
+                new ColumnDefinition { Width = GridLength.Auto }
+            }
+        };
 
         var nameLabel = new Label
         {
@@ -127,65 +137,7 @@ public partial class TeamsPage : ContentPage
             HorizontalOptions = LayoutOptions.Center,
             TextColor = Colors.Black
         };
-        mainLayout.Children.Add(nameLabel);
-
-        
-        if (team.Id == 1 && team.PokemonCount > 0)
-        {
-            var pokemonGrid = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitionCollection
-                    {
-                        new ColumnDefinition { Width = new GridLength(60) },
-                        new ColumnDefinition { Width = new GridLength(60) }
-                    },
-                RowDefinitions = new RowDefinitionCollection
-                    {
-                        new RowDefinition { Height = new GridLength(60) },
-                        new RowDefinition { Height = new GridLength(60) },
-                        new RowDefinition { Height = new GridLength(60) }
-                    },
-                ColumnSpacing = 10,
-                RowSpacing = 10,
-                HorizontalOptions = LayoutOptions.Start,
-                Margin = new Thickness(10, 10, 0, 0)
-            };
-
-            
-            for (int i = 0; i < 6; i++)
-            {
-                var box = new BoxView
-                {
-                    Color = Color.FromArgb("#808080"),
-                    WidthRequest = 60,
-                    HeightRequest = 60,
-                    CornerRadius = 5
-                };
-
-                Grid.SetRow(box, i / 2);
-                Grid.SetColumn(box, i % 2);
-                pokemonGrid.Children.Add(box);
-            }
-
-            mainLayout.Children.Add(pokemonGrid);
-        }
-
-        border.Content = mainLayout;
-
-        
-        var tapGesture = new TapGestureRecognizer();
-        tapGesture.Tapped += (s, e) => OnTeamCardTapped(team);
-        border.GestureRecognizers.Add(tapGesture);
-
-        var headerGrid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitionCollection
-                {
-                    new ColumnDefinition { Width = GridLength.Star },
-                    new ColumnDefinition { Width = GridLength.Auto }
-                }
-        };
-
+        headerGrid.Children.Add(nameLabel);
 
         var deleteButton = new Button
         {
@@ -216,13 +168,445 @@ public partial class TeamsPage : ContentPage
         Grid.SetRow(headerGrid, 0);
         mainLayout.Children.Add(headerGrid);
 
+        // Display Pokemon sprites grid
+        if (team.PokemonCount > 0)
+        {
+            var pokemonGrid = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitionCollection
+                {
+                    new ColumnDefinition { Width = new GridLength(60) },
+                    new ColumnDefinition { Width = new GridLength(60) }
+                },
+                RowDefinitions = new RowDefinitionCollection
+                {
+                    new RowDefinition { Height = new GridLength(60) },
+                    new RowDefinition { Height = new GridLength(60) },
+                    new RowDefinition { Height = new GridLength(60) }
+                },
+                ColumnSpacing = 10,
+                RowSpacing = 10,
+                HorizontalOptions = LayoutOptions.Start,
+                Margin = new Thickness(10, 10, 0, 0)
+            };
+
+            // Display actual Pokemon sprites
+            for (int i = 0; i < 6; i++)
+            {
+                if (i < team.Pokemon.Count)
+                {
+                    var image = new Image
+                    {
+                        Source = team.Pokemon[i].SpriteUrl,
+                        WidthRequest = 60,
+                        HeightRequest = 60,
+                        Aspect = Aspect.AspectFit
+                    };
+                    Grid.SetRow(image, i / 2);
+                    Grid.SetColumn(image, i % 2);
+                    pokemonGrid.Children.Add(image);
+                }
+                else
+                {
+                    var box = new BoxView
+                    {
+                        Color = Color.FromArgb("#808080"),
+                        WidthRequest = 60,
+                        HeightRequest = 60,
+                        CornerRadius = 5
+                    };
+                    Grid.SetRow(box, i / 2);
+                    Grid.SetColumn(box, i % 2);
+                    pokemonGrid.Children.Add(box);
+                }
+            }
+
+            Grid.SetRow(pokemonGrid, 1);
+            mainLayout.Children.Add(pokemonGrid);
+        }
+
+        border.Content = mainLayout;
+
+        var tapGesture = new TapGestureRecognizer();
+        tapGesture.Tapped += (s, e) => OnTeamCardTapped(team);
+        border.GestureRecognizers.Add(tapGesture);
+
         return border;
     }
 
     private async void OnTeamCardTapped(PokemonTeam team)
     {
-        await DisplayAlert("Team Selected", $"You selected {team.Name}", "OK");
-       
+        await LoadTeamDetail(team);
+    }
+
+    private async Task LoadTeamDetail(PokemonTeam team)
+    {
+        try
+        {
+            currentTeam = team;
+
+            // Show team detail view
+            teamsListView.IsVisible = false;
+            teamDetailView.IsVisible = true;
+
+            // Set team name
+            teamNameLabel.Text = team.Name;
+
+            // Clear existing members
+            teamMembersContainer.Children.Clear();
+
+            // Handle empty team case
+            if (team.Pokemon == null || team.Pokemon.Count == 0)
+            {
+                emptyTeamMessage.IsVisible = true;
+
+                // Reset summary labels for an empty team
+                totalScoreLabel.Text = "Total Score: N/A";
+                teamWeaknessesLabel.Text = "Team Weaknesses: N/A";
+                teamStrengthsLabel.Text = "Team Strengths: N/A";
+
+                return;
+            }
+
+            emptyTeamMessage.IsVisible = false;
+
+            // Load each team member with full details and collect them
+            var fullTeamMembers = new List<Pokemon>();
+
+            foreach (var teamPokemon in team.Pokemon)
+            {
+                Pokemon pokemon;
+
+                if (PokemonCache.IsCached(teamPokemon.Name.ToLower()))
+                {
+                    pokemon = await PokemonCache.GetCachedPokemon(teamPokemon.Name.ToLower());
+                }
+                else
+                {
+                    pokemon = await pokemonService.GetPokemon(teamPokemon.Name.ToLower());
+                }
+
+                if (pokemon != null)
+                {
+                    // Store the fully loaded Pokemon object
+                    fullTeamMembers.Add(pokemon);
+
+                    var memberView = CreateTeamMemberView(pokemon);
+                    teamMembersContainer.Children.Add(memberView);
+                }
+            }
+
+            // --- NEW LOGIC: Calculate and Display Team Summary ---
+            var summary = CalculateTeamSummary(fullTeamMembers);
+
+            totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
+            teamWeaknessesLabel.Text = $"Team Weaknesses: {string.Join(", ", summary.Weaknesses)}";
+            teamStrengthsLabel.Text = $"Team Strengths: {string.Join(", ", summary.Strengths)}";
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to load team details: {ex.Message}", "OK");
+        }
+    }
+
+    // --- Team Summary Calculation Method ---
+    private TeamSummary CalculateTeamSummary(List<Pokemon> teamMembers)
+    {
+        var summary = new TeamSummary();
+
+        // 1. Calculate Total Base Stats
+        int totalBaseStatSum = teamMembers.Sum(p => p.TotalBaseStats);
+        summary.TotalScore = totalBaseStatSum;
+
+        // 2. Calculate Combined Defensive Effectiveness
+
+        // NOTE: This relies on PokemonTypeEffectiveness.effectivenessChart being public static.
+        var allAttackerTypes = PokemonTypeEffectiveness.effectivenessChart.Keys;
+
+        var combinedDefense = new Dictionary<string, float>();
+
+        foreach (var attackingType in allAttackerTypes)
+        {
+            // Start low, looking for the maximum weakness (e.g., 4.0x)
+            float highestMultiplier = 0.0f;
+
+            foreach (var pokemon in teamMembers)
+            {
+                float pokemonDefenseMultiplier = 1f;
+
+                // Calculate the combined defense multiplier for this single Pokemon
+                // against the current attacking type
+                foreach (var defenseWrapper in pokemon.Types)
+                {
+                    float singleDefenseEffectiveness = 1f;
+                    string defenseType = defenseWrapper.Type.Name.ToLower();
+
+                    // Check effectiveness chart for explicit multiplier
+                    if (PokemonTypeEffectiveness.effectivenessChart.TryGetValue(attackingType, out var defenseDict) &&
+                        defenseDict.TryGetValue(defenseType, out float multiplier))
+                    {
+                        singleDefenseEffectiveness = multiplier;
+                    }
+
+                    pokemonDefenseMultiplier *= singleDefenseEffectiveness;
+                }
+
+                // The team's overall defensive standing against this attacking type is the
+                // worst exposure (highest multiplier) found across all team members.
+                if (pokemonDefenseMultiplier > highestMultiplier)
+                {
+                    highestMultiplier = pokemonDefenseMultiplier;
+                }
+            }
+
+            combinedDefense[attackingType] = highestMultiplier;
+        }
+
+        // 3. Filter results into Strengths (Resistances/Immunities) and Weaknesses
+        var teamWeaknesses = combinedDefense
+            .Where(d => d.Value > 1f)
+            .OrderByDescending(d => d.Value)
+            .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.##}x)")
+            .ToList();
+
+        var teamStrengths = combinedDefense
+            .Where(d => d.Value < 1f)
+            .OrderBy(d => d.Value)
+            .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.##}x)")
+            .ToList();
+
+        summary.Weaknesses = teamWeaknesses.Count > 0 ? teamWeaknesses : new List<string> { "None" };
+        summary.Strengths = teamStrengths.Count > 0 ? teamStrengths : new List<string> { "None" };
+
+        return summary;
+    }
+
+
+    private Grid CreateTeamMemberView(Pokemon pokemon)
+    {
+        var grid = new Grid
+        {
+            ColumnSpacing = 20,
+            Padding = 15,
+            BackgroundColor = Color.FromArgb("#F5F5F5"),
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250, GridUnitType.Absolute) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+
+        // Pokemon Sprite
+        var sprite = new Image
+        {
+            Source = pokemon.Sprites?.FrontDefault ?? PokemonCache.GetCachedSprite(pokemon.Name.ToLower()),
+            WidthRequest = 250,
+            HeightRequest = 250,
+            Aspect = Aspect.AspectFit,
+            BackgroundColor = Colors.White
+        };
+        Grid.SetColumn(sprite, 0);
+
+        // Pokemon Details
+        var detailsStack = new VerticalStackLayout
+        {
+            Spacing = 8,
+            VerticalOptions = LayoutOptions.Center
+        };
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = FormatPokemonName(pokemon.Name),
+            FontSize = 20,
+            FontAttributes = FontAttributes.Bold
+        });
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = $"Height: {pokemon.Height / 10.0} M",
+            FontSize = 14
+        });
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = $"Weight: {pokemon.Weight / 10.0} KG",
+            FontSize = 14
+        });
+
+        string types = pokemon.Types != null
+            ? string.Join(", ", pokemon.Types.Select(t => FormatPokemonName(t.Type.Name)))
+            : "N/A";
+        detailsStack.Children.Add(new Label
+        {
+            Text = $"Types: {types}",
+            FontSize = 14
+        });
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = $"Base Stat Total: {pokemon.TotalBaseStats}",
+            FontSize = 14
+        });
+
+        detailsStack.Children.Add(new BoxView
+        {
+            HeightRequest = 1,
+            Color = Colors.Gray,
+            Margin = new Thickness(0, 5)
+        });
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = FormatStrengths(pokemon.Strengths),
+            FontSize = 14
+        });
+
+        detailsStack.Children.Add(new Label
+        {
+            Text = FormatWeaknesses(pokemon.Weaknesses),
+            FontSize = 14
+        });
+
+        // Remove from team button
+        var removeButton = new Button
+        {
+            Text = "Remove from Team",
+            HorizontalOptions = LayoutOptions.Start,
+            Margin = new Thickness(0, 10, 0, 0),
+            BackgroundColor = Colors.Red,
+            TextColor = Colors.White
+        };
+        removeButton.Clicked += async (s, e) => await RemovePokemonFromTeam(pokemon.Name);
+        detailsStack.Children.Add(removeButton);
+
+        Grid.SetColumn(detailsStack, 1);
+
+        grid.Children.Add(sprite);
+        grid.Children.Add(detailsStack);
+
+        return grid;
+    }
+
+    private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
+    {
+        if (strengths == null || strengths.Count == 0)
+            return "Strengths: None";
+
+        var formattedList = strengths
+            .OrderByDescending(s => s.Multiplier)
+            .Select(s => $"{char.ToUpper(s.Type[0]) + s.Type.Substring(1)} ({s.Multiplier:0.##}x)");
+
+        return $"Strengths: {string.Join(", ", formattedList)}";
+    }
+
+    private string FormatWeaknesses(List<PokemonWeaknessWrapper> weaknesses)
+    {
+        if (weaknesses == null || weaknesses.Count == 0)
+            return "Weaknesses: None";
+
+        var formattedList = weaknesses
+            .OrderByDescending(w => w.Multiplier)
+            .Select(w => $"{char.ToUpper(w.Type[0]) + w.Type.Substring(1)} ({w.Multiplier:0.##}x)");
+
+        return $"Weaknesses: {string.Join(", ", formattedList)}";
+    }
+
+    private static string FormatPokemonName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "N/A";
+
+        return char.ToUpper(name[0]) + name.Substring(1);
+    }
+
+    private void OnBackToTeamsClicked(object sender, EventArgs e)
+    {
+        teamDetailView.IsVisible = false;
+        teamsListView.IsVisible = true;
+        currentTeam = null;
+    }
+
+    private async void OnAddPokemonToTeamClicked(object sender, EventArgs e)
+    {
+        if (currentTeam == null)
+            return;
+
+        if (currentTeam.Pokemon.Count >= 6)
+        {
+            await DisplayAlert("Team Full", "A team can only have 6 Pokémon!", "OK");
+            return;
+        }
+
+        string pokemonName = await DisplayPromptAsync("Add Pokémon", "Enter Pokémon name:", "Add", "Cancel");
+
+        if (!string.IsNullOrWhiteSpace(pokemonName))
+        {
+            await AddPokemonToTeam(pokemonName.ToLower());
+        }
+    }
+
+    private async Task AddPokemonToTeam(string pokemonName)
+    {
+        try
+        {
+            var pokemon = await pokemonService.GetPokemon(pokemonName);
+
+            if (pokemon == null)
+            {
+                await DisplayAlert("Error", "Pokémon not found!", "OK");
+                return;
+            }
+
+            var teamPokemon = new TeamPokemon
+            {
+                Name = pokemon.Name,
+                SpriteUrl = pokemon.Sprites?.FrontDefault,
+                Types = pokemon.Types?.Select(t => t.Type.Name).ToList() ?? new List<string>(),
+                Level = 50
+            };
+
+            currentTeam.Pokemon.Add(teamPokemon);
+            currentTeam.PokemonCount = currentTeam.Pokemon.Count;
+
+            SaveTeam(currentTeam);
+            await LoadTeamDetail(currentTeam);
+
+            await DisplayAlert("Success", $"{FormatPokemonName(pokemon.Name)} added to team!", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to add Pokémon: {ex.Message}", "OK");
+        }
+    }
+
+    private async Task RemovePokemonFromTeam(string pokemonName)
+    {
+        try
+        {
+            bool confirm = await DisplayAlert("Remove Pokémon",
+                $"Remove {FormatPokemonName(pokemonName)} from team?",
+                "Yes", "No");
+
+            if (!confirm)
+                return;
+
+            var pokemon = currentTeam.Pokemon.FirstOrDefault(p =>
+                p.Name.Equals(pokemonName, StringComparison.OrdinalIgnoreCase));
+
+            if (pokemon != null)
+            {
+                currentTeam.Pokemon.Remove(pokemon);
+                currentTeam.PokemonCount = currentTeam.Pokemon.Count;
+
+                SaveTeam(currentTeam);
+                await LoadTeamDetail(currentTeam);
+
+                await DisplayAlert("Success", $"{FormatPokemonName(pokemonName)} removed from team", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to remove Pokémon: {ex.Message}", "OK");
+        }
     }
 
     private async void OnAddTeamClicked(object sender, EventArgs e)
@@ -233,7 +617,6 @@ public partial class TeamsPage : ContentPage
         {
             try
             {
-               
                 int nextId = teams.Count > 0 ? teams.Max(t => t.Id) + 1 : 1;
 
                 var newTeam = new PokemonTeam
@@ -245,9 +628,7 @@ public partial class TeamsPage : ContentPage
                     CreatedDate = DateTime.Now
                 };
 
-                
                 SaveTeam(newTeam);
-
                 LoadTeams();
                 DisplayTeams();
             }
@@ -262,7 +643,6 @@ public partial class TeamsPage : ContentPage
     {
         try
         {
-           
             team.PokemonCount = team.Pokemon?.Count ?? 0;
 
             var json = JsonSerializer.Serialize(team, new JsonSerializerOptions
@@ -314,4 +694,21 @@ public class TeamPokemon
     public int Level { get; set; }
 }
 
+// --- CLASS FOR TEAM SUMMARY RESULTS ---
+public class TeamSummary
+{
+    public int TotalScore { get; set; }
+    public List<string> Weaknesses { get; set; } = new List<string>();
+    public List<string> Strengths { get; set; } = new List<string>();
+}
 
+// --- IMPORTANT NOTE ---
+/* For the CalculateTeamSummary method to compile, you must update 
+    the PokemonTypeEffectiveness class (in your other file) to make 
+    'effectivenessChart' accessible to this class.
+
+    Change: 
+        private static Dictionary<string, Dictionary<string, float>> effectivenessChart = new() 
+    To:
+        public static readonly Dictionary<string, Dictionary<string, float>> effectivenessChart = new()
+*/

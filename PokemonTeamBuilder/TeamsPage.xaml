@@ -4,39 +4,67 @@
              x:Class="PokemonTeamBuilder.TeamsPage"
              Title="TeamsPage">
 
-    <Grid RowDefinitions="Auto,*">
-        <Label Grid.Row="0"
-               Text="Pokemon team builder"
-               FontSize="24"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               Margin="0,20,0,20" />
+    <Grid>
+        <Grid x:Name="teamsListView" RowDefinitions="Auto,*">
+        </Grid>
 
-        <ScrollView Grid.Row="1">
-            <Grid x:Name="teamGrid"
-                  Padding="20"
-                  ColumnSpacing="20"
-                  RowSpacing="20"
-                  ColumnDefinitions="*,*,*"
-                  RowDefinitions="Auto, Auto">
+        <Grid x:Name="teamDetailView"
+              IsVisible="False"
+              BackgroundColor="White"
+              RowSpacing="15"
+              Padding="20"
+              RowDefinitions="Auto,*" 
+              ColumnDefinitions="*,*" >
+            <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,20">
+                <Button Grid.Column="0"
+                        Text="← Back"
+                        Clicked="OnBackToTeamsClicked"
+                        HorizontalOptions="Start" />
+
+                <Label Grid.Column="1"
+                       x:Name="teamNameLabel"
+                       Text="Team Name"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+
+                <Button Grid.Column="2"
+                        Text="+ Add Pokemon"
+                        Clicked="OnAddPokemonToTeamClicked"
+                        HorizontalOptions="End" />
             </Grid>
 
-        </ScrollView>
+            <ScrollView Grid.Row="1" Grid.Column="0">
+                <VerticalStackLayout x:Name="teamMembersContainer" Spacing="15">
+                </VerticalStackLayout>
+            </ScrollView>
 
-        <Button Grid.Row="1"
-                Text="+"
-                FontSize="32"
-                 WidthRequest="60"
-                HeightRequest="60"
-                CornerRadius="30"
-                BackgroundColor="{StaticResource PrimaryColor}"
-                TextColor="White"
-                HorizontalOptions="End"
-                VerticalOptions="End"
-                Margin="0,0,20,20"
-                Clicked="OnAddTeamClicked">
-        </Button>
+            <ScrollView Grid.Row="1" Grid.Column="1" Padding="20">
+                <Grid x:Name="teamSummaryPanel"
+                      BackgroundColor="#E0E0E0"
+                      VerticalOptions="FillAndExpand"
+                      Padding="20">
 
+                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Team Details" FontSize="28" FontAttributes="Bold" TextColor="Black"/>
+                        <Label x:Name="totalScoreLabel" Text="Total Score: N/A" FontSize="18" TextColor="Black"/>
+                        <Label x:Name="teamWeaknessesLabel" Text="Team Weaknesses: N/A" FontSize="18" TextColor="Black"/>
+                        <Label x:Name="teamStrengthsLabel" Text="Team Strengths: N/A" FontSize="18" TextColor="Black"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </ScrollView>
+
+            <StackLayout Grid.Row="1"
+                         Grid.ColumnSpan="2"
+                         x:Name="emptyTeamMessage"
+                         IsVisible="False"
+                         VerticalOptions="Center"
+                         HorizontalOptions="Center">
+                <Label Text="No Pokémon in this team yet!" FontSize="18" HorizontalOptions="Center" />
+                <Label Text="Tap '+ Add Pokemon' to add team members" FontSize="14" TextColor="Gray" HorizontalOptions="Center" Margin="0,10,0,0" />
+            </StackLayout>
+        </Grid>
     </Grid>
 
 </ContentPage>
