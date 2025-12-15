@@ -182,5 +182,40 @@ namespace PokemonTeamBuilder
             var favourites = await GetFavorites();
             return favourites.Contains(pokemonName);
         }
+
+        public static async Task<Pokemon?> GetCachedPokemonById(int id)
+        {
+            InitializeFolders();
+            try
+            {
+                var filePath = Path.Combine(cacheFolder, $"{id}.json");
+
+                if (File.Exists(filePath))
+                {
+                    var json = await File.ReadAllTextAsync(filePath);
+                    return JsonSerializer.Deserialize<Pokemon>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to get cached Pokemon by ID: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        public static string GetCachedSpriteById(int id)
+        {
+            InitializeFolders();
+            var spritePath = Path.Combine(spritesFolder, $"{id}.png");
+            if (File.Exists(spritePath))
+            {
+                return spritePath;
+            }
+            return null;
+        }
     }
 }
