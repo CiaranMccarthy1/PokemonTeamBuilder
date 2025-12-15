@@ -73,7 +73,7 @@
             <ScrollView Grid.Row="1" Grid.Column="1" Padding="20">
                 <Grid x:Name="teamSummaryPanel"
                       BackgroundColor="#E0E0E0"
-                      VerticalOptions="FillAndExpand"
+                      VerticalOptions="Fill"
                       Padding="20">
 
                     <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">

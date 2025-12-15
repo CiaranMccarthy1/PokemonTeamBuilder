@@ -4,17 +4,19 @@ using System.Collections.ObjectModel;
 
 namespace PokemonTeamBuilder
 {
+    [QueryProperty(nameof(TeamId), "teamId")]
     public partial class MainPage : ContentPage
     {
 
         private readonly PokemonService pokemonService;
-        private string currentPokemonName;
+        private string currentPokemonName = string.Empty;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
         private bool isInitialized = false;
         private const int pageSize = 40; 
         private int offset = 0;         
         private bool isLoading = false;
         public bool selectingPokemonForTeam = false;
+        private int? teamId;
 
         //takes HttpClient as parameter
         public MainPage(HttpClient httpClient)
@@ -22,6 +24,18 @@ namespace PokemonTeamBuilder
             InitializeComponent();
             pokemonService = new PokemonService(httpClient);
 
+        }
+
+        public string TeamId
+        {
+            set
+            {
+                if (int.TryParse(value, out int id))
+                {
+                    teamId = id;
+                    selectingPokemonForTeam = true;
+                }
+            }
         }
 
         protected override async void OnAppearing()
@@ -41,7 +55,7 @@ namespace PokemonTeamBuilder
             pokemonSprite.Source = null;
         }
 
-        private async void OnSearchBarPressed(object sender, EventArgs e)
+        private async void OnSearchBarPressed(object? sender, EventArgs? e)
         {
             string query = searchBar.Text?.Trim().ToLower() ?? string.Empty;
 
@@ -56,7 +70,7 @@ namespace PokemonTeamBuilder
                 // Check if the Pokémon is marked as a favorite and if it's cached
                 var favourites = await PokemonCache.GetFavorites();
                 bool isFavourite = favourites.Contains(query);
-                Pokemon pokemon;
+                Pokemon? pokemon = null;
 
                 if (isFavourite && PokemonCache.IsCached(query))
                 {
@@ -127,6 +141,7 @@ namespace PokemonTeamBuilder
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Not Favourite";
             pokemonFavouriteButton.IsVisible = true;
+            pokemonAddToTeamButton.IsVisible = true;
         }
 
 
@@ -259,7 +274,7 @@ namespace PokemonTeamBuilder
 
         public class PokemonGridItem
         {
-            public string Name { get; set; }
+            public string Name { get; set; } = string.Empty;
             public int PokemonId { get; set; }
             public string SpriteUrl => $"{PokemonService.SpriteBaseUrl}{PokemonId}.png";
         }
@@ -338,9 +353,19 @@ namespace PokemonTeamBuilder
             ClearPokemonDisplay();
         }
 
-        public async Task OnAddTeamButtonClicked(object sender, EventArgs e)
+        public async void OnAddTeamButtonClicked(object? sender, EventArgs? e)
         {
-            await Shell.Current.GoToAsync($"//TeamPage?selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
+            if (string.IsNullOrEmpty(currentPokemonName))
+                return;
+
+            if (teamId.HasValue)
+            {
+              
+                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={teamId.Value}&selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
+
+                teamId = null;
+                selectingPokemonForTeam = false;
+            }
         }
     }
 }

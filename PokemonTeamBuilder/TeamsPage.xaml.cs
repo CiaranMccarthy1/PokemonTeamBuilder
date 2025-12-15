@@ -5,22 +5,31 @@ using System.IO;
 using System.Threading.Tasks;
 
 namespace PokemonTeamBuilder;
-[QueryProperty("SelectedPokemon", "selectedPokemon")]
-
+[QueryProperty(nameof(SelectedPokemon), "selectedPokemon")]
+[QueryProperty(nameof(TeamIdParam), "teamId")]
 public partial class TeamsPage : ContentPage
 {
-    private ObservableCollection<PokemonTeam> teams;
-    private string teamsFolder;
-    private PokemonTeam currentTeam;
+    private ObservableCollection<PokemonTeam> teams = new();
+    private string teamsFolder = string.Empty;
+    private PokemonTeam? currentTeam;
     private readonly PokemonService pokemonService;
     private MainPage mainPage;
-    private string selectedPokemon;
+    private string selectedPokemon = string.Empty;
+    private int? pendingTeamId;
 
     public string SelectedPokemon
     {
+        set => selectedPokemon = Uri.UnescapeDataString(value ?? string.Empty);
+    }
+
+    public string TeamIdParam
+    {
         set
         {
-            selectedPokemon = value;
+            if (int.TryParse(value, out int id))
+            {
+                pendingTeamId = id;
+            }
         }
     }
 
@@ -33,15 +42,30 @@ public partial class TeamsPage : ContentPage
         DisplayTeams();
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         LoadTeams();
         DisplayTeams();
 
-        if (currentTeam != null && teamDetailView.IsVisible)
+        // Handle returning from MainPage with a selected Pokemon
+        if (!string.IsNullOrEmpty(selectedPokemon) && pendingTeamId.HasValue)
         {
-            LoadTeamDetail(currentTeam);
+            var team = teams.FirstOrDefault(t => t.Id == pendingTeamId.Value);
+            if (team != null)
+            {
+                currentTeam = team;
+                await AddPokemonToTeam(selectedPokemon);
+                await LoadTeamDetail(team);
+            }
+
+            // Clear the pending values
+            selectedPokemon = string.Empty;
+            pendingTeamId = null;
+        }
+        else if (currentTeam != null && teamDetailView.IsVisible)
+        {
+            await LoadTeamDetail(currentTeam);
         }
     }
 
@@ -278,7 +302,7 @@ public partial class TeamsPage : ContentPage
 
             foreach (var teamPokemon in team.Pokemon)
             {
-                Pokemon pokemon;
+                Pokemon? pokemon = null;
 
                 if (PokemonCache.IsCached(teamPokemon.Name.ToLower()))
                 {
@@ -454,62 +478,7 @@ public partial class TeamsPage : ContentPage
     {
         teamDetailView.IsVisible = false;
         teamsListView.IsVisible = true;
-        currentTeam = null;
-    }
-
-    private async void OnAddPokemonToTeamClicked(object sender, EventArgs e)
-    {
-        if (currentTeam == null)
-            return;
-
-        if (currentTeam.Pokemon.Count >= 6)
-        {
-            await DisplayAlert("Team Full", "A team can only have 6 Pokémon!", "OK");
-            return;
-        }
-
-        mainPage.selectingPokemonForTeam = true;
-        await Shell.Current.GoToAsync($"//MainPage");
-        string pokemonName = selectedPokemon;   
-
-        if (!string.IsNullOrWhiteSpace(pokemonName))
-        {
-            await AddPokemonToTeam(pokemonName.ToLower());
-        }
-    }
-
-    private async Task AddPokemonToTeam(string pokemonName)
-    {
-        try
-        {
-            var pokemon = await pokemonService.GetPokemon(pokemonName);
-
-            if (pokemon == null)
-            {
-                await DisplayAlert("Error", "Pokémon not found!", "OK");
-                return;
-            }
-
-            var teamPokemon = new TeamPokemon
-            {
-                Name = pokemon.Name,
-                SpriteUrl = pokemon.Sprites?.FrontDefault,
-                Types = pokemon.Types?.Select(t => t.Type.Name).ToList() ?? new List<string>(),
-                Level = 50
-            };
-
-            currentTeam.Pokemon.Add(teamPokemon);
-            currentTeam.PokemonCount = currentTeam.Pokemon.Count;
-
-            SaveTeam(currentTeam);
-            await LoadTeamDetail(currentTeam);
-
-            await DisplayAlert("Success", $"{FormatPokemonName(pokemon.Name)} added to team!", "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Failed to add Pokémon: {ex.Message}", "OK");
-        }
+        currentTeam = null!;
     }
 
     private async Task RemovePokemonFromTeam(string pokemonName)
@@ -544,7 +513,8 @@ public partial class TeamsPage : ContentPage
     }
 
     private async void OnAddTeamClicked(object sender, EventArgs e)
-    {
+    { 
+        teamDetailView.IsVisible = true;
         string teamName = await DisplayPromptAsync("New Team", "Enter team name:", "Create", "Cancel", "Team Name");
 
         if (!string.IsNullOrWhiteSpace(teamName))
@@ -608,6 +578,49 @@ public partial class TeamsPage : ContentPage
         {
             DisplayAlert("Error", $"Failed to delete team: {ex.Message}", "OK");
         }
+    }
+
+    private async Task AddPokemonToTeam(string pokemonName)
+    {
+        if (currentTeam == null)
+            return;
+
+        try
+        {
+            var pokemon = await pokemonService.GetPokemon(pokemonName);
+
+            if (pokemon == null)
+            {
+                await DisplayAlert("Error", "Pokémon not found!", "OK");
+                return;
+            }
+
+            var teamPokemon = new TeamPokemon
+            {
+                Name = pokemon.Name,
+                SpriteUrl = pokemon.Sprites?.FrontDefault ?? string.Empty,
+                Types = pokemon.Types?.Select(t => t.Type.Name).ToList() ?? new List<string>(),
+                Level = 50
+            };
+
+            currentTeam.Pokemon.Add(teamPokemon);
+            currentTeam.PokemonCount = currentTeam.Pokemon.Count;
+
+            SaveTeam(currentTeam);
+
+            await DisplayAlert("Success", $"{FormatPokemonName(pokemon.Name)} added to team!", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to add Pokémon: {ex.Message}", "OK");
+        }
+    }
+
+    private void OnAddPokemonToTeamClicked(object sender, EventArgs e)
+    {
+        if (currentTeam == null)
+            return;
+        Shell.Current.GoToAsync($"//MainPage?teamId={currentTeam.Id}&fromTeamsPage=true");
     }
 }
 
