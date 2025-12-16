@@ -587,10 +587,16 @@ public partial class TeamsPage : ContentPage
         }
     }
 
-    private void OnAddPokemonToTeamClicked(object sender, EventArgs e)
+    private async void OnAddPokemonToTeamClicked(object sender, EventArgs e)
     {
         if (currentTeam == null)
             return;
+        if (currentTeam.PokemonCount >= 6)
+        {
+            await DisplayAlert("Error", "Team is full", "OK");
+            return;
+        }
+            
         Shell.Current.GoToAsync($"//MainPage?teamId={currentTeam.Id}&fromTeamsPage=true");
     }
 }
