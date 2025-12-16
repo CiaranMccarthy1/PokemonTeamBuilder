@@ -67,35 +67,23 @@ namespace PokemonTeamBuilder
 
             try
             {
-                // Check if the Pokémon is marked as a favorite and if it's cached
-                var favourites = await PokemonCache.GetFavorites();
-                bool isFavourite = favourites.Contains(query);
-                Pokemon? pokemon = null;
-
-                if (isFavourite && PokemonCache.IsCached(query))
-                {
-                    pokemon = await PokemonCache.GetCachedPokemon(query);
-                }
-                else
-                {
-                    pokemon = await pokemonService.GetPokemon(query);
-                }
+                Pokemon? pokemon = await PokemonCache.GetCachedPokemon(query);
 
                 if (pokemon != null)
                 {
+                    bool isFavourite = await PokemonCache.IsFavouriteAsync(query);
                     await DisplayPokemon(pokemon, isFavourite);
                 }
                 else
                 {
-                    await DisplayAlert("Error", "Pokémon data could not be retrieved.", "OK");
+                    await DisplayAlert("Error", "Pokémon not found in cache.", "OK");
                 }
             }
-
             catch (Exception ex)
             {
                 await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
             }
-            // Clear search bar after search
+            
             searchBar.Text = string.Empty;
         }
 
@@ -103,15 +91,10 @@ namespace PokemonTeamBuilder
         {
             string query = pokemon.Name.ToLower();
 
-            // Load sprite from cache if available
             var cachedSpritePath = PokemonCache.GetCachedSprite(query);
             if (!string.IsNullOrEmpty(cachedSpritePath))
             {
                 pokemonSprite.Source = cachedSpritePath;
-            }
-            else if (!string.IsNullOrEmpty(pokemon.Sprites?.FrontDefault))
-            {
-                pokemonSprite.Source = pokemon.Sprites.FrontDefault;
             }
             else
             {
@@ -125,9 +108,9 @@ namespace PokemonTeamBuilder
             pokemonDetailsGrid.IsVisible = true;
 
             // Format and display Pokemon data
-            string formattedName = FormatPokemonName(pokemon.Name);
+            string formattedName = PokemonFormatter.FormatPokemonName(pokemon.Name);
             string types = pokemon.Types != null
-                ? string.Join(", ", pokemon.Types.Select(t => FormatPokemonName(t.Type.Name)))
+                ? string.Join(", ", pokemon.Types.Select(t => PokemonFormatter.FormatPokemonName(t.Type.Name)))
                 : "N/A";
 
             pokemonNameLabel.Text = $"Name: {formattedName}";
@@ -135,8 +118,8 @@ namespace PokemonTeamBuilder
             pokemonWeightLabel.Text = $"Weight: {pokemon.Weight / 10.0} KG";
             pokemonTypeLabel.Text = $"Types: {types}";
             pokemonStatLabel.Text = $"Base Stat Total: {pokemon.TotalBaseStats}";
-            pokemonStrenghtLabel.Text = FormatStrengths(pokemon.Strengths);
-            pokemonWeaknessLabel.Text = FormatWeaknesses(pokemon.Weaknesses);
+            pokemonStrenghtLabel.Text = PokemonFormatter.FormatStrengths(pokemon.Strengths);
+            pokemonWeaknessLabel.Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses);
 
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Not Favourite";
@@ -196,16 +179,11 @@ namespace PokemonTeamBuilder
                 if (favourites.Contains(currentPokemonName))
                 {
                     favourites.Remove(currentPokemonName);
-                    PokemonCache.RemoveFromCache(currentPokemonName);
-                  
-                    pokemonFavouriteButton.Text = "☆ Unfavourite";
+                    pokemonFavouriteButton.Text = "☆ Not Favourite";
                 }
                 else
                 {
                     favourites.Add(currentPokemonName);
-                    var pokemon = await pokemonService.GetPokemon(currentPokemonName);
-                    await PokemonCache.CachePokemon(pokemon);
-
                     pokemonFavouriteButton.Text = "★ Favourite";
                 }
                
@@ -234,51 +212,6 @@ namespace PokemonTeamBuilder
             currentPokemonName = string.Empty;
         }
 
-        private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
-        {
-            if (strengths == null || strengths.Count == 0)
-            {
-                return "Strengths: None";
-            }
-
-            // lambda to get and format each strength type and multiplier
-            var formattedList = strengths
-                .OrderByDescending(s => s.Multiplier)
-                .Select(s => $"{char.ToUpper(s.Type[0]) + s.Type.Substring(1)} ({s.Multiplier:0.##}x)");
-
-            return $"Strengths: {string.Join(", ", formattedList)}";
-        }
-
-        private string FormatWeaknesses(List<PokemonWeaknessWrapper> weaknesses)
-        {
-            if (weaknesses == null || weaknesses.Count == 0)
-            {
-                return "Weaknesses: None";
-            }
-
-            // formatting each weakness type and multiplier
-            var formattedList = weaknesses
-                .OrderByDescending(w => w.Multiplier)
-                .Select(w => $"{char.ToUpper(w.Type[0]) + w.Type.Substring(1)} ({w.Multiplier:0.##}x)");
-
-            return $"Weakness: {string.Join(", ", formattedList)}";
-        }
-
-        private static string FormatPokemonName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                return "N/A";
-
-            return char.ToUpper(name[0]) + name.Substring(1);
-        }
-
-        public class PokemonGridItem
-        {
-            public string Name { get; set; } = string.Empty;
-            public int PokemonId { get; set; }
-            public string SpriteUrl => $"{PokemonService.SpriteBaseUrl}{PokemonId}.png";
-        }
-
         private async Task LoadAllPokemonForGrid()
         {
             if (isLoading || offset >= PokemonService.PokemonLimit)
@@ -299,7 +232,7 @@ namespace PokemonTeamBuilder
                     {
                         newPokemonItems.Add(new PokemonGridItem
                         {
-                            Name = FormatPokemonName(pokemon.Name),
+                            Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
                             PokemonId = pokemon.Id
                         });
                     }
@@ -315,14 +248,16 @@ namespace PokemonTeamBuilder
                     AllPokemonNames.Add(item);
                 }
 
-                offset += newPokemonItems.Count;
+                offset = end;
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
             }
-
-            isLoading = false;
+            finally
+            {
+                isLoading = false;
+            }
         }
 
         private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)

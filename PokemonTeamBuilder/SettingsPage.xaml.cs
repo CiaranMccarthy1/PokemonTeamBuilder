@@ -40,5 +40,27 @@ namespace PokemonTeamBuilder
             await DisplayAlert("Success", "Settings saved!", "OK");
         }
 
+        private async void OnReloadPokemonClicked(object sender, EventArgs e)
+        {
+
+            await DisplayAlert("Cache Location", FileSystem.AppDataDirectory, "OK");
+
+            bool confirm = await DisplayAlert(
+                "Reload Pokémon Data",
+                "This will re-download all Pokémon data. This may take a while. Continue?",
+                "Yes", "No");
+
+            if (!confirm)
+                return;
+
+            var httpClient = new HttpClient();
+            var pokemonService = new PokemonService(httpClient);
+            var downloader = new PokemonBulkDownloader(httpClient, pokemonService);
+
+            downloader.ResetDownload();
+
+            Application.Current.MainPage = new LoadingPage(downloader);
+        }
+
     }
 }

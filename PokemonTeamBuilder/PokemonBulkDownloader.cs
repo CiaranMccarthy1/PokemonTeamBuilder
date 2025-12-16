@@ -1,46 +1,48 @@
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace PokemonTeamBuilder
 {
     public class PokemonBulkDownloader
     {
-        private readonly HttpClient _httpClient;
-        private readonly PokemonService _pokemonService;
-        private string _cacheFolder;
-        private string _spritesFolder;
-        private string _downloadCompleteFile;
+        private readonly HttpClient httpClient;
+        private readonly PokemonService pokemonService;
+        private string cacheFolder;
+        private string spritesFolder;
+        private string downloadCompleteFile;
 
         public PokemonBulkDownloader(HttpClient httpClient, PokemonService pokemonService)
         {
-            _httpClient = httpClient;
-            _pokemonService = pokemonService;
+            this.httpClient = httpClient;
+            this.pokemonService = pokemonService;
             InitializeFolders();
         }
 
         private void InitializeFolders()
         {
-            _cacheFolder = Path.Combine(FileSystem.AppDataDirectory, "pokemon_cache");
-            _spritesFolder = Path.Combine(_cacheFolder, "sprites");
-            _downloadCompleteFile = Path.Combine(_cacheFolder, "download_complete.txt");
+            cacheFolder = Path.Combine(FileSystem.AppDataDirectory, "pokemon_cache");
+            spritesFolder = Path.Combine(cacheFolder, "sprites");
+            downloadCompleteFile = Path.Combine(cacheFolder, "download_complete.txt");
 
-            if (!Directory.Exists(_cacheFolder))
+            if (!Directory.Exists(cacheFolder))
             {
-                Directory.CreateDirectory(_cacheFolder);
+                Directory.CreateDirectory(cacheFolder);
             }
 
-            if (!Directory.Exists(_spritesFolder))
+            if (!Directory.Exists(spritesFolder))
             {
-                Directory.CreateDirectory(_spritesFolder);
+                Directory.CreateDirectory(spritesFolder);
             }
         }
 
         public bool IsDownloadComplete()
         {
-            return File.Exists(_downloadCompleteFile);
+            return File.Exists(downloadCompleteFile);
         }
 
         public async Task<bool> DownloadAllPokemon(IProgress<DownloadProgress> progress = null)
         {
+            var timer = Stopwatch.StartNew();
             try
             {
                 int totalPokemon = PokemonService.PokemonLimit;
@@ -51,7 +53,7 @@ namespace PokemonTeamBuilder
                 {
                     try
                     {
-                        // Report progress
+
                         progress?.Report(new DownloadProgress
                         {
                             Current = downloaded,
@@ -60,7 +62,7 @@ namespace PokemonTeamBuilder
                             Failed = failed
                         });
 
-                        // Check if already cached
+
                         string pokemonName = id.ToString();
                         if (IsPokemonCached(id))
                         {
@@ -68,15 +70,15 @@ namespace PokemonTeamBuilder
                             continue;
                         }
 
-                        // Download Pokemon data
-                        var pokemon = await _pokemonService.GetPokemon(pokemonName);
+
+                        var pokemon = await pokemonService.GetPokemon(pokemonName);
 
                         if (pokemon != null)
                         {
-                            // Save Pokemon data
+
                             await SavePokemonData(pokemon);
 
-                            // Download and save sprite
+
                             await DownloadSprite(pokemon);
 
                             downloaded++;
@@ -86,8 +88,7 @@ namespace PokemonTeamBuilder
                             failed++;
                         }
 
-                        // Small delay to avoid overwhelming the API
-                        await Task.Delay(50);
+                        await Task.Delay(200);
                     }
                     catch (Exception ex)
                     {
@@ -95,16 +96,18 @@ namespace PokemonTeamBuilder
                         failed++;
                     }
                 }
+                timer.Stop();
+                 
 
-                // Mark download as complete
-                await File.WriteAllTextAsync(_downloadCompleteFile, DateTime.Now.ToString());
+                await File.WriteAllTextAsync(downloadCompleteFile, DateTime.Now.ToString());
 
                 progress?.Report(new DownloadProgress
                 {
                     Current = downloaded,
                     Total = totalPokemon,
                     IsComplete = true,
-                    Failed = failed
+                    Failed = failed,
+                    ElapsedTime = timer.Elapsed
                 });
 
                 return true;
@@ -118,8 +121,8 @@ namespace PokemonTeamBuilder
 
         private bool IsPokemonCached(int id)
         {
-            var dataFile = Path.Combine(_cacheFolder, $"{id}.json");
-            var spriteFile = Path.Combine(_spritesFolder, $"{id}.png");
+            var dataFile = Path.Combine(cacheFolder, $"{id}.json");
+            var spriteFile = Path.Combine(spritesFolder, $"{id}.png");
             return File.Exists(dataFile) && File.Exists(spriteFile);
         }
 
@@ -132,11 +135,10 @@ namespace PokemonTeamBuilder
                     WriteIndented = true
                 });
 
-                var filePath = Path.Combine(_cacheFolder, $"{pokemon.Id}.json");
+                var filePath = Path.Combine(cacheFolder, $"{pokemon.Id}.json");
                 await File.WriteAllTextAsync(filePath, json);
 
-                // Also save by name for easy lookup
-                var nameFilePath = Path.Combine(_cacheFolder, $"{pokemon.Name.ToLower()}.json");
+                var nameFilePath = Path.Combine(cacheFolder, $"{pokemon.Name.ToLower()}.json");
                 await File.WriteAllTextAsync(nameFilePath, json);
             }
             catch (Exception ex)
@@ -153,13 +155,12 @@ namespace PokemonTeamBuilder
 
                 if (!string.IsNullOrEmpty(spriteUrl))
                 {
-                    var imageBytes = await _httpClient.GetByteArrayAsync(spriteUrl);
+                    var imageBytes = await httpClient.GetByteArrayAsync(spriteUrl);
 
-                    var spritePath = Path.Combine(_spritesFolder, $"{pokemon.Id}.png");
+                    var spritePath = Path.Combine(spritesFolder, $"{pokemon.Id}.png");
                     await File.WriteAllBytesAsync(spritePath, imageBytes);
 
-                    // Also save by name
-                    var namePath = Path.Combine(_spritesFolder, $"{pokemon.Name.ToLower()}.png");
+                    var namePath = Path.Combine(spritesFolder, $"{pokemon.Name.ToLower()}.png");
                     await File.WriteAllBytesAsync(namePath, imageBytes);
                 }
             }
@@ -171,9 +172,32 @@ namespace PokemonTeamBuilder
 
         public void ResetDownload()
         {
-            if (File.Exists(_downloadCompleteFile))
+            try
             {
-                File.Delete(_downloadCompleteFile);
+                if (File.Exists(downloadCompleteFile))
+                {
+                    File.Delete(downloadCompleteFile);
+                }
+
+                if (Directory.Exists(cacheFolder))
+                {
+                    foreach (var file in Directory.GetFiles(cacheFolder, "*.json"))
+                    {
+                        File.Delete(file);
+                    }
+                }
+
+                if (Directory.Exists(spritesFolder))
+                {
+                    foreach (var file in Directory.GetFiles(spritesFolder, "*.png"))
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to reset download: {ex.Message}");
             }
         }
     }
@@ -185,6 +209,7 @@ namespace PokemonTeamBuilder
         public int CurrentPokemonId { get; set; }
         public int Failed { get; set; }
         public bool IsComplete { get; set; }
+        public TimeSpan ElapsedTime { get; set; }
         public double Percentage => Total > 0 ? (double)Current / Total * 100 : 0;
     }
 }

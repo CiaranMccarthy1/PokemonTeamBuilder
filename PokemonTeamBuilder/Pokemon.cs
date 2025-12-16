@@ -1,5 +1,4 @@
-﻿
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace PokemonTeamBuilder
 {
@@ -429,6 +428,41 @@ namespace PokemonTeamBuilder
                 })
                 .ToList();
         }
+
+
+    }
+
+    public class PokemonGridItem
+    {
+        public int PokemonId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string SpriteUrl => PokemonCache.GetCachedSpriteById(PokemonId) 
+            ?? $"{PokemonService.SpriteBaseUrl}{PokemonId}.png";
+    }
+
+    public class PokemonTeam
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<TeamPokemon> Pokemon { get; set; } = new List<TeamPokemon>();
+        public int PokemonCount { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class TeamPokemon
+    {
+        public string Name { get; set; } = string.Empty;
+        public string SpriteUrl { get; set; } = string.Empty;
+        public List<string> Types { get; set; } = new List<string>();
+        public int Level { get; set; }
+    }
+
+
+    public class TeamSummary
+    {
+        public int TotalScore { get; set; }
+        public List<string> Weaknesses { get; set; } = new List<string>();
+        public List<string> Strengths { get; set; } = new List<string>();
     }
 
 

@@ -172,27 +172,19 @@ namespace PokemonTeamBuilder
             summary.Strengths = offensiveCoverage
                 .Where(d => d.Value > 1f)
                 .OrderByDescending(d => d.Value)
-                .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.#}x)")
+                .Select(d => $"{PokemonFormatter.FormatPokemonName(d.Key)} ({d.Value:0.#}x)")
                 .ToList();
 
             summary.Weaknesses = worstDefense
                 .Where(d => d.Value > 1f)
                 .OrderByDescending(d => d.Value)
-                .Select(d => $"{FormatPokemonName(d.Key)} ({d.Value:0.#}x)")
+                .Select(d => $"{PokemonFormatter.FormatPokemonName(d.Key)} ({d.Value:0.#}x)")
                 .ToList();
 
             if (summary.Strengths.Count == 0) summary.Strengths.Add("None");
             if (summary.Weaknesses.Count == 0) summary.Weaknesses.Add("None");
 
             return summary;
-        }
-
-        private static string FormatPokemonName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                return "N/A";
-
-            return char.ToUpper(name[0]) + name.Substring(1);
         }
     }
 }

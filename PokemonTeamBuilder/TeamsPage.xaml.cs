@@ -206,18 +206,18 @@ public partial class TeamsPage : ContentPage
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
                 {
-                    new ColumnDefinition { Width = new GridLength(60) },
-                    new ColumnDefinition { Width = new GridLength(60) }
+                    new ColumnDefinition { Width = new GridLength(110) },
+                    new ColumnDefinition { Width = new GridLength(110) },
+                    new ColumnDefinition { Width = new GridLength(110) }
                 },
                 RowDefinitions = new RowDefinitionCollection
                 {
                     new RowDefinition { Height = new GridLength(60) },
-                    new RowDefinition { Height = new GridLength(60) },
                     new RowDefinition { Height = new GridLength(60) }
                 },
                 ColumnSpacing = 10,
-                RowSpacing = 10,
-                HorizontalOptions = LayoutOptions.Start,
+                RowSpacing = 20,
+                HorizontalOptions = LayoutOptions.Center,
                 Margin = new Thickness(10, 10, 0, 0)
             };
 
@@ -232,8 +232,8 @@ public partial class TeamsPage : ContentPage
                         HeightRequest = 60,
                         Aspect = Aspect.AspectFit
                     };
-                    Grid.SetRow(image, i / 2);
-                    Grid.SetColumn(image, i % 2);
+                    Grid.SetRow(image, i / 3);
+                    Grid.SetColumn(image, i % 3);
                     pokemonGrid.Children.Add(image);
                 }
                 else
@@ -245,8 +245,8 @@ public partial class TeamsPage : ContentPage
                         HeightRequest = 60,
                         CornerRadius = 5
                     };
-                    Grid.SetRow(box, i / 2);
-                    Grid.SetColumn(box, i % 2);
+                    Grid.SetRow(box, i / 3);
+                    Grid.SetColumn(box, i % 3);
                     pokemonGrid.Children.Add(box);
                 }
             }
@@ -371,7 +371,7 @@ public partial class TeamsPage : ContentPage
 
         detailsStack.Children.Add(new Label
         {
-            Text = FormatPokemonName(pokemon.Name),
+            Text = PokemonFormatter.FormatPokemonName(pokemon.Name),
             FontSize = 20,
             FontAttributes = FontAttributes.Bold
         });
@@ -389,7 +389,7 @@ public partial class TeamsPage : ContentPage
         });
 
         string types = pokemon.Types != null
-            ? string.Join(", ", pokemon.Types.Select(t => FormatPokemonName(t.Type.Name)))
+            ? string.Join(", ", pokemon.Types.Select(t => PokemonFormatter.FormatPokemonName(t.Type.Name)))
             : "N/A";
         detailsStack.Children.Add(new Label
         {
@@ -412,13 +412,13 @@ public partial class TeamsPage : ContentPage
 
         detailsStack.Children.Add(new Label
         {
-            Text = FormatStrengths(pokemon.Strengths),
+            Text = PokemonFormatter.FormatStrengths(pokemon.Strengths),
             FontSize = 14
         });
 
         detailsStack.Children.Add(new Label
         {
-            Text = FormatWeaknesses(pokemon.Weaknesses),
+            Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses),
             FontSize = 14
         });
 
@@ -442,38 +442,6 @@ public partial class TeamsPage : ContentPage
         return grid;
     }
 
-    private string FormatStrengths(List<PokemonStrengthWrapper> strengths)
-    {
-        if (strengths == null || strengths.Count == 0)
-            return "Strengths: None";
-
-        var formattedList = strengths
-            .OrderByDescending(s => s.Multiplier)
-            .Select(s => $"{char.ToUpper(s.Type[0]) + s.Type.Substring(1)} ({s.Multiplier:0.##}x)");
-
-        return $"Strengths: {string.Join(", ", formattedList)}";
-    }
-
-    private string FormatWeaknesses(List<PokemonWeaknessWrapper> weaknesses)
-    {
-        if (weaknesses == null || weaknesses.Count == 0)
-            return "Weaknesses: None";
-
-        var formattedList = weaknesses
-            .OrderByDescending(w => w.Multiplier)
-            .Select(w => $"{char.ToUpper(w.Type[0]) + w.Type.Substring(1)} ({w.Multiplier:0.##}x)");
-
-        return $"Weaknesses: {string.Join(", ", formattedList)}";
-    }
-
-    private static string FormatPokemonName(string name)
-    {
-        if (string.IsNullOrEmpty(name))
-            return "N/A";
-
-        return char.ToUpper(name[0]) + name.Substring(1);
-    }
-
     private void OnBackToTeamsClicked(object sender, EventArgs e)
     {
         teamDetailView.IsVisible = false;
@@ -486,7 +454,7 @@ public partial class TeamsPage : ContentPage
         try
         {
             bool confirm = await DisplayAlert("Remove Pokémon",
-                $"Remove {FormatPokemonName(pokemonName)} from team?",
+                $"Remove {PokemonFormatter.FormatPokemonName(pokemonName)} from team?",
                 "Yes", "No");
 
             if (!confirm)
@@ -503,7 +471,7 @@ public partial class TeamsPage : ContentPage
                 SaveTeam(currentTeam);
                 await LoadTeamDetail(currentTeam);
 
-                await DisplayAlert("Success", $"{FormatPokemonName(pokemonName)} removed from team", "OK");
+                await DisplayAlert("Success", $"{PokemonFormatter.FormatPokemonName(pokemonName)} removed from team", "OK");
             }
         }
         catch (Exception ex)
@@ -514,7 +482,6 @@ public partial class TeamsPage : ContentPage
 
     private async void OnAddTeamClicked(object sender, EventArgs e)
     { 
-        teamDetailView.IsVisible = true;
         string teamName = await DisplayPromptAsync("New Team", "Enter team name:", "Create", "Cancel", "Team Name");
 
         if (!string.IsNullOrWhiteSpace(teamName))
@@ -535,6 +502,10 @@ public partial class TeamsPage : ContentPage
                 SaveTeam(newTeam);
                 LoadTeams();
                 DisplayTeams();
+
+                // Set currentTeam to the new team object and show detail view
+                currentTeam = newTeam;
+                await LoadTeamDetail(newTeam);
             }
             catch (Exception ex)
             {
@@ -608,7 +579,7 @@ public partial class TeamsPage : ContentPage
 
             SaveTeam(currentTeam);
 
-            await DisplayAlert("Success", $"{FormatPokemonName(pokemon.Name)} added to team!", "OK");
+            //await DisplayAlert("Success", $"{PokemonFormatter.FormatPokemonName(pokemon.Name)} added to team!", "OK");
         }
         catch (Exception ex)
         {
@@ -624,27 +595,3 @@ public partial class TeamsPage : ContentPage
     }
 }
 
-public class PokemonTeam
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty; 
-    public List<TeamPokemon> Pokemon { get; set; } = new List<TeamPokemon>();
-    public int PokemonCount { get; set; }
-    public DateTime CreatedDate { get; set; }
-}
-
-public class TeamPokemon
-{
-    public string Name { get; set; } = string.Empty; 
-    public string SpriteUrl { get; set; } = string.Empty; 
-    public List<string> Types { get; set; } = new List<string>();
-    public int Level { get; set; }
-}
-
-
-public class TeamSummary
-{
-    public int TotalScore { get; set; }
-    public List<string> Weaknesses { get; set; } = new List<string>();
-    public List<string> Strengths { get; set; } = new List<string>();
-}
