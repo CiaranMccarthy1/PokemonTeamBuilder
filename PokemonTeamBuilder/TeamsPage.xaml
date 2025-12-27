@@ -2,52 +2,92 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PokemonTeamBuilder.TeamsPage"
-             Title="TeamsPage">
+             Title="My Teams">
 
     <Grid>
-        <Grid x:Name="teamsListView" RowDefinitions="Auto,*">
-            <Label Grid.Row="0"
-                   Text="Pokemon Team Builder"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   Margin="0,20,0,20" />
+        <!-- Teams List View -->
+        <Grid x:Name="teamsListView" RowDefinitions="Auto,*" Padding="16">
+            <VerticalStackLayout Grid.Row="0" Spacing="8" Margin="0,10,0,20">
+                <Label Text="My Teams"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Start" />
+                <Label Text="Build and manage your Pokémon teams"
+                       FontSize="14"
+                       TextColor="{DynamicResource SubTextColor}"
+                       HorizontalOptions="Start" />
+            </VerticalStackLayout>
 
             <ScrollView Grid.Row="1">
                 <Grid x:Name="teamGrid"
-                      Padding="20"
-                      ColumnSpacing="20"
-                      RowSpacing="20"
+                      ColumnSpacing="16"
+                      RowSpacing="16"
                       ColumnDefinitions="*,*,*"
-                      RowDefinitions="Auto, Auto">
+                      RowDefinitions="Auto, Auto, Auto, Auto">
                 </Grid>
             </ScrollView>
 
-            <Button Grid.Row="1"
+            <!-- Empty Teams Message -->
+            <VerticalStackLayout x:Name="emptyTeamsMessage"
+                                 Grid.Row="1"
+                                 IsVisible="False"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="20">
+                <Label Text="No Teams Created"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="Create your first Pokémon team to get started!"
+                       FontSize="14"
+                       TextColor="{DynamicResource SubTextColor}"
+                       HorizontalOptions="Center" />
+                <Button Text="+"
+                        FontSize="36"
+                        WidthRequest="80"
+                        HeightRequest="80"
+                        CornerRadius="40"
+                        BackgroundColor="{DynamicResource PrimaryColor}"
+                        TextColor="White"
+                        HorizontalOptions="Center"
+                        Margin="0,10,0,0"
+                        Clicked="OnAddTeamClicked" />
+                <Label Text="Create Team"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource PrimaryColor}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <Button x:Name="floatingAddButton"
+                    Grid.Row="1"
                     Text="+"
-                    FontSize="32"
-                    WidthRequest="60"
-                    HeightRequest="60"
-                    CornerRadius="30"
-                    BackgroundColor="{StaticResource PrimaryColor}"
+                    FontSize="28"
+                    WidthRequest="64"
+                    HeightRequest="64"
+                    CornerRadius="32"
+                    BackgroundColor="{DynamicResource PrimaryColor}"
                     TextColor="White"
                     HorizontalOptions="End"
                     VerticalOptions="End"
-                    Margin="0,0,20,20"
+                    Margin="0,0,8,16"
                     Clicked="OnAddTeamClicked" />
         </Grid>
 
+        <!-- Team Detail View -->
         <Grid x:Name="teamDetailView"
               IsVisible="False"
-              BackgroundColor="White"
-              RowSpacing="15"
+              BackgroundColor="{DynamicResource PageBackgroundColor}"
+              RowSpacing="16"
               Padding="20"
               RowDefinitions="Auto,*" 
-              ColumnDefinitions="*,*" >
+              ColumnDefinitions="1.2*,*">
 
-            <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,20">
+            <!-- Header -->
+            <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
                 <Button Grid.Column="0"
                         Text="← Back"
+                        BackgroundColor="{DynamicResource SecondaryColor}"
                         Clicked="OnBackToTeamsClicked"
                         HorizontalOptions="Start" />
 
@@ -60,41 +100,58 @@
                        VerticalOptions="Center" />
 
                 <Button Grid.Column="2"
-                        Text="+ Add Pokemon"
+                        Text="+ Add Pokémon"
+                        BackgroundColor="{DynamicResource AccentColor}"
                         Clicked="OnAddPokemonToTeamClicked"
                         HorizontalOptions="End" />
             </Grid>
 
+            <!-- Team Members -->
             <ScrollView Grid.Row="1" Grid.Column="0">
-                <VerticalStackLayout x:Name="teamMembersContainer" Spacing="15">
+                <VerticalStackLayout x:Name="teamMembersContainer" Spacing="12">
                 </VerticalStackLayout>
             </ScrollView>
 
-            <ScrollView Grid.Row="1" Grid.Column="1" Padding="20">
-                <Grid x:Name="teamSummaryPanel"
-                      BackgroundColor="#E0E0E0"
-                      VerticalOptions="Fill"
-                      Padding="20">
-
-                    <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
-                        <Label Text="Team Details" FontSize="28" FontAttributes="Bold" TextColor="Black"/>
-                        <Label x:Name="totalScoreLabel" Text="Total Score: N/A" FontSize="18" TextColor="Black"/>
-                        <Label x:Name="teamWeaknessesLabel" Text="Team Weaknesses: N/A" FontSize="18" TextColor="Black"/>
-                        <Label x:Name="teamStrengthsLabel" Text="Team Strengths: N/A" FontSize="18" TextColor="Black"/>
+            <!-- Team Summary Panel -->
+            <Frame Grid.Row="1" Grid.Column="1" 
+                   Padding="20" 
+                   CornerRadius="16"
+                   BackgroundColor="{DynamicResource CardBackgroundColor}"
+                   BorderColor="{DynamicResource BorderColor}"
+                   HasShadow="False">
+                
+                <VerticalStackLayout x:Name="teamSummaryPanel" Spacing="16" VerticalOptions="Start">
+                    <Label Text="📊 Team Analysis" FontSize="22" FontAttributes="Bold"/>
+                    
+                    <BoxView HeightRequest="1" Color="{DynamicResource DividerColor}" />
+                    
+                    <VerticalStackLayout Spacing="12">
+                        <Label x:Name="totalScoreLabel" Text="Total Score: N/A" FontSize="16" FontAttributes="Bold"/>
+                        
+                        <Label Text="Strengths" FontSize="14" FontAttributes="Bold" TextColor="{DynamicResource SuccessColor}" Margin="0,8,0,0"/>
+                        <Label x:Name="teamStrengthsLabel" Text="N/A" FontSize="13"/>
+                        
+                        <Label Text="Weaknesses" FontSize="14" FontAttributes="Bold" TextColor="{DynamicResource ErrorColor}" Margin="0,8,0,0"/>
+                        <Label x:Name="teamWeaknessesLabel" Text="N/A" FontSize="13"/>
                     </VerticalStackLayout>
-                </Grid>
-            </ScrollView>
+                </VerticalStackLayout>
+            </Frame>
 
-            <StackLayout Grid.Row="1"
-                         Grid.Column="0"
-                         Grid.ColumnSpan="1"
-                         x:Name="emptyTeamMessage"
-                         IsVisible="False"
-                         VerticalOptions="Center"
-                         HorizontalOptions="Center">
-                <Label Text="No Pokémon in this team yet!" FontSize="18" HorizontalOptions="Center" />
-                <Label Text="Tap '+ Add Pokemon' to add team members" FontSize="14" TextColor="Gray" HorizontalOptions="Center" Margin="0,10,0,0" />
-            </StackLayout>
+            <!-- Empty Team Message -->
+            <VerticalStackLayout Grid.Row="1"
+                                 Grid.Column="0"
+                                 x:Name="emptyTeamMessage"
+                                 IsVisible="False"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="12">
+                <Label Text="🎮" FontSize="48" HorizontalOptions="Center" />
+                <Label Text="No Pokémon yet!" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+                <Label Text="Tap '+ Add Pokémon' to build your team" 
+                       FontSize="14" 
+                       TextColor="{DynamicResource SubTextColor}" 
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
         </Grid>
     </Grid>
 

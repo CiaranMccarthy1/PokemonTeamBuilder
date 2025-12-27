@@ -142,16 +142,16 @@ namespace PokemonTeamBuilder
                 ? string.Join(", ", pokemon.Types.Select(t => PokemonFormatter.FormatPokemonName(t.Type.Name)))
                 : "N/A";
 
-            pokemonNameLabel.Text = $"Name: {formattedName}";
-            pokemonHeightLabel.Text = $"Height: {pokemon.Height / 10.0} M";
-            pokemonWeightLabel.Text = $"Weight: {pokemon.Weight / 10.0} KG";
-            pokemonTypeLabel.Text = $"Types: {types}";
-            pokemonStatLabel.Text = $"Base Stat Total: {pokemon.TotalBaseStats}";
+            pokemonNameLabel.Text = formattedName;
+            pokemonHeightLabel.Text = $"📏 Height: {pokemon.Height / 10.0} m";
+            pokemonWeightLabel.Text = $"⚖️ Weight: {pokemon.Weight / 10.0} kg";
+            pokemonTypeLabel.Text = $"🏷️ Types: {types}";
+            pokemonStatLabel.Text = $"📊 Base Stats: {pokemon.TotalBaseStats}";
             pokemonStrenghtLabel.Text = PokemonFormatter.FormatStrengths(pokemon.Strengths);
             pokemonWeaknessLabel.Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses);
 
             currentPokemonName = pokemon.Name.ToLower();
-            pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Not Favourite";
+            pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Favourite";
             pokemonFavouriteButton.IsVisible = true;
             pokemonAddToTeamButton.IsVisible = teamId.HasValue;
         }

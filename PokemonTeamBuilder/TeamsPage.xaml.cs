@@ -106,6 +106,17 @@ public partial class TeamsPage : ContentPage
     {
         teamGrid.Children.Clear();
 
+        // Show/hide empty message and floating button based on team count
+        if (teams.Count == 0)
+        {
+            emptyTeamsMessage.IsVisible = true;
+            floatingAddButton.IsVisible = false;
+            return;
+        }
+
+        emptyTeamsMessage.IsVisible = false;
+        floatingAddButton.IsVisible = true;
+
         int row = 0;
         int col = 0;
 
@@ -130,13 +141,14 @@ public partial class TeamsPage : ContentPage
     {
         var border = new Border
         {
-            BackgroundColor = Color.FromArgb("#D3D3D3"),
+            BackgroundColor = (Color)Application.Current.Resources["CardBackgroundColor"],
+            Stroke = (Color)Application.Current.Resources["BorderColor"],
             StrokeShape = new RoundRectangle
             {
-                CornerRadius = new CornerRadius(40, 0, 0, 40)
+                CornerRadius = new CornerRadius(16)
             },
-            Padding = 15,
-            HeightRequest = 250
+            Padding = 16,
+            HeightRequest = 220
         };
 
         var mainLayout = new Grid
@@ -145,7 +157,8 @@ public partial class TeamsPage : ContentPage
             {
                 new RowDefinition { Height = GridLength.Auto },
                 new RowDefinition { Height = GridLength.Star }
-            }
+            },
+            RowSpacing = 12
         };
 
         var headerGrid = new Grid
@@ -160,22 +173,22 @@ public partial class TeamsPage : ContentPage
         var nameLabel = new Label
         {
             Text = team.Name,
-            FontSize = 20,
+            FontSize = 18,
             FontAttributes = FontAttributes.Bold,
-            HorizontalOptions = LayoutOptions.Center,
-            TextColor = Colors.Black
+            HorizontalOptions = LayoutOptions.Start,
+            VerticalOptions = LayoutOptions.Center
         };
         headerGrid.Children.Add(nameLabel);
 
         var deleteButton = new Button
         {
             Text = "×",
-            FontSize = 24,
-            WidthRequest = 30,
-            HeightRequest = 30,
-            CornerRadius = 15,
+            FontSize = 18,
+            WidthRequest = 32,
+            HeightRequest = 32,
+            CornerRadius = 16,
             Padding = 0,
-            BackgroundColor = Colors.Red,
+            BackgroundColor = (Color)Application.Current.Resources["ErrorColor"],
             TextColor = Colors.White,
             HorizontalOptions = LayoutOptions.End,
             VerticalOptions = LayoutOptions.Start
@@ -326,23 +339,36 @@ public partial class TeamsPage : ContentPage
         {
             ColumnSpacing = 20,
             Padding = 15,
-            BackgroundColor = Color.FromArgb("#F5F5F5"),
             Margin = new Thickness(0, 0, 0, 10)
         };
+        grid.SetDynamicResource(Grid.BackgroundColorProperty, "CardBackgroundColor");
 
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250, GridUnitType.Absolute) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180, GridUnitType.Absolute) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 
         // Pokemon Sprite - use cached sprite
+        var spriteFrame = new Microsoft.Maui.Controls.Frame
+        {
+            WidthRequest = 160,
+            HeightRequest = 160,
+            CornerRadius = 80,
+            Padding = 10,
+            HasShadow = false,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center
+        };
+        spriteFrame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "SurfaceColor");
+        spriteFrame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
+
         var sprite = new Image
         {
             Source = PokemonCache.GetCachedSprite(pokemon.Name.ToLower()),
-            WidthRequest = 250,
-            HeightRequest = 250,
-            Aspect = Aspect.AspectFit,
-            BackgroundColor = Colors.White
+            WidthRequest = 140,
+            HeightRequest = 140,
+            Aspect = Aspect.AspectFit
         };
-        Grid.SetColumn(sprite, 0);
+        spriteFrame.Content = sprite;
+        Grid.SetColumn(spriteFrame, 0);
 
         // Pokemon Details
         var detailsStack = new VerticalStackLayout
@@ -351,12 +377,13 @@ public partial class TeamsPage : ContentPage
             VerticalOptions = LayoutOptions.Center
         };
 
-        detailsStack.Children.Add(new Label
+        var nameLabel = new Label
         {
             Text = PokemonFormatter.FormatPokemonName(pokemon.Name),
             FontSize = 20,
             FontAttributes = FontAttributes.Bold
-        });
+        };
+        detailsStack.Children.Add(nameLabel);
 
         detailsStack.Children.Add(new Label
         {
@@ -376,7 +403,8 @@ public partial class TeamsPage : ContentPage
         detailsStack.Children.Add(new Label
         {
             Text = $"Types: {types}",
-            FontSize = 14
+            FontSize = 14,
+            FontAttributes = FontAttributes.Bold
         });
 
         detailsStack.Children.Add(new Label
@@ -385,40 +413,45 @@ public partial class TeamsPage : ContentPage
             FontSize = 14
         });
 
-        detailsStack.Children.Add(new BoxView
+        var divider = new BoxView
         {
             HeightRequest = 1,
-            Color = Colors.Gray,
             Margin = new Thickness(0, 5)
-        });
+        };
+        divider.SetDynamicResource(BoxView.ColorProperty, "DividerColor");
+        detailsStack.Children.Add(divider);
 
-        detailsStack.Children.Add(new Label
+        var strengthLabel = new Label
         {
             Text = PokemonFormatter.FormatStrengths(pokemon.Strengths),
             FontSize = 14
-        });
+        };
+        strengthLabel.SetDynamicResource(Label.TextColorProperty, "SuccessColor");
+        detailsStack.Children.Add(strengthLabel);
 
-        detailsStack.Children.Add(new Label
+        var weaknessLabel = new Label
         {
             Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses),
             FontSize = 14
-        });
+        };
+        weaknessLabel.SetDynamicResource(Label.TextColorProperty, "ErrorColor");
+        detailsStack.Children.Add(weaknessLabel);
 
         // Remove from team button
         var removeButton = new Button
         {
             Text = "Remove from Team",
             HorizontalOptions = LayoutOptions.Start,
-            Margin = new Thickness(0, 10, 0, 0),
-            BackgroundColor = Colors.Red,
-            TextColor = Colors.White
+            Margin = new Thickness(0, 10, 0, 0)
         };
+        removeButton.SetDynamicResource(Button.BackgroundColorProperty, "ErrorColor");
+        removeButton.TextColor = Colors.White;
         removeButton.Clicked += async (s, e) => await RemovePokemonFromTeam(pokemon.Name);
         detailsStack.Children.Add(removeButton);
 
         Grid.SetColumn(detailsStack, 1);
 
-        grid.Children.Add(sprite);
+        grid.Children.Add(spriteFrame);
         grid.Children.Add(detailsStack);
 
         return grid;
