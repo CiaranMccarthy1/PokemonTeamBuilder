@@ -3,17 +3,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PokemonTeamBuilder.Themes.LightTheme">
 
-    <!-- Colors -->
-    <Color x:Key="PrimaryColor">#8BC34A</Color>
-    <Color x:Key="SecondaryColor">#689F38</Color>
-    <Color x:Key="TertiaryColor">#C5E1A5</Color>
-    <Color x:Key="PageBackgroundColor">#FFFFFF</Color>
-    <Color x:Key="FrameBackgroundColor">#F5F5F5</Color>
-    <Color x:Key="TextColor">#212121</Color>
-    <Color x:Key="SubTextColor">#757575</Color>
-    <Color x:Key="ShellBackgroundColor">#F0F0F0</Color>
-    <Color x:Key="ShellForegroundColor">#212121</Color>
+    <!-- Primary colors -->
+    <Color x:Key="PrimaryColor">#2563EB</Color>          
+    <Color x:Key="SecondaryColor">#3B82F6</Color>       
+    <Color x:Key="TertiaryColor">#60A5FA</Color>        
+    <Color x:Key="AccentColor">#0EA5E9</Color>           
+    
+    <!-- Background colors -->
+    <Color x:Key="PageBackgroundColor">#F8FAFC</Color>
+    <Color x:Key="FrameBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="CardBackgroundColor">#F1F5F9</Color>
+    <Color x:Key="SurfaceColor">#E2E8F0</Color>
+    
+    <!-- Text colors -->
+    <Color x:Key="TextColor">#0F172A</Color>
+    <Color x:Key="TextColorSecondary">#475569</Color>
+    <Color x:Key="SubTextColor">#64748B</Color>
+    <Color x:Key="TextColorInverse">#FFFFFF</Color>
+    
+    <!-- Shell colors -->
+    <Color x:Key="ShellBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="ShellForegroundColor">#0F172A</Color>
+    <Color x:Key="ShellTabBarBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="ShellTabBarForegroundColor">#2563EB</Color>
+    
+    <!-- Utility colors -->
+    <Color x:Key="BorderColor">#CBD5E1</Color>
+    <Color x:Key="DividerColor">#E2E8F0</Color>
+    <Color x:Key="SuccessColor">#10B981</Color>
+    <Color x:Key="ErrorColor">#EF4444</Color>
+    <Color x:Key="WarningColor">#F59E0B</Color>
 
+    <!-- Styles -->
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource ShellForegroundColor}" />
+    </Style>
 
     <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
         <Setter Property="BackgroundColor" Value="{StaticResource PageBackgroundColor}" />
@@ -25,15 +49,39 @@
 
     <Style TargetType="Button">
         <Setter Property="BackgroundColor" Value="{StaticResource PrimaryColor}" />
-        <Setter Property="TextColor" Value="White" />
+        <Setter Property="TextColor" Value="{StaticResource TextColorInverse}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource SecondaryColor}" />
+        <Setter Property="TextColor" Value="{StaticResource TextColorInverse}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,12" />
     </Style>
 
     <Style TargetType="Entry">
         <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource FrameBackgroundColor}" />
+    </Style>
+
+    <Style TargetType="SearchBar">
+        <Setter Property="BackgroundColor" Value="{StaticResource FrameBackgroundColor}" />
+        <Setter Property="TextColor" Value="{StaticResource TextColor}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource SubTextColor}" />
+    </Style>
+
+    <Style TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="{StaticResource CardBackgroundColor}" />
+        <Setter Property="BorderColor" Value="{StaticResource BorderColor}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HasShadow" Value="False" />
     </Style>
 
     <Style TargetType="BoxView">
-        <Setter Property="Color" Value="{StaticResource SubTextColor}" />
+        <Setter Property="Color" Value="{StaticResource DividerColor}" />
     </Style>
 
 </ResourceDictionary>

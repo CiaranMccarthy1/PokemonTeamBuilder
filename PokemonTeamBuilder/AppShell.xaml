@@ -4,10 +4,30 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:PokemonTeamBuilder"
-    Title="PokemonTeamBuilder"
-    Shell.FlyoutBehavior="Flyout">
+    Title="Pokémon Team Builder"
+    Shell.FlyoutBehavior="Flyout"
+    Shell.BackgroundColor="{DynamicResource ShellBackgroundColor}"
+    Shell.ForegroundColor="{DynamicResource ShellForegroundColor}"
+    Shell.TitleColor="{DynamicResource ShellForegroundColor}"
+    Shell.FlyoutBackgroundColor="{DynamicResource PageBackgroundColor}"
+    FlyoutHeaderBehavior="Fixed">
 
-    <FlyoutItem Title="Teams" 
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="150" BackgroundColor="{DynamicResource PrimaryColor}" Padding="20">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="8">
+                <Label Text="⚡ Pokémon" 
+                       FontSize="28" 
+                       FontAttributes="Bold" 
+                       TextColor="White" />
+                <Label Text="Team Builder" 
+                       FontSize="18" 
+                       TextColor="White" 
+                       Opacity="0.9" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <FlyoutItem Title="My Teams" 
                 Icon="home"  
                 Route="TeamsRoute">
         <ShellContent
@@ -16,11 +36,11 @@
             Route="TeamsPage" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Search" 
+    <FlyoutItem Title="Pokédex" 
                 Icon="magnifyingglass"  
                 Route="SearchRoute">
         <ShellContent
-            Title="Pokemon Search"
+            Title="Pokédex"
             ContentTemplate="{DataTemplate local:MainPage}"
             Route="MainPage" />
     </FlyoutItem>
@@ -29,7 +49,7 @@
                 Icon="gear"
                 Route="SettingsRoute">
         <ShellContent
-            Title="App Settings"
+            Title="Settings"
             ContentTemplate="{DataTemplate local:SettingsPage}"
             Route="SettingsPage" />
     </FlyoutItem>
