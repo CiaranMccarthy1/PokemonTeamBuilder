@@ -7,15 +7,11 @@ namespace PokemonTeamBuilder
     [QueryProperty(nameof(TeamId), "teamId")]
     public partial class MainPage : ContentPage
     {
-
         private readonly PokemonService pokemonService;
         private string currentPokemonName = string.Empty;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
         private bool isInitialized = false;
-        private const int pageSize = 40; 
-        private int offset = 0;         
         private bool isLoading = false;
-        public bool selectingPokemonForTeam = false;
         private int? teamId;
 
         //takes HttpClient as parameter
@@ -33,7 +29,6 @@ namespace PokemonTeamBuilder
                 if (int.TryParse(value, out int id))
                 {
                     teamId = id;
-                    selectingPokemonForTeam = true;
                 }
             }
         }
@@ -51,8 +46,42 @@ namespace PokemonTeamBuilder
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-
             pokemonSprite.Source = null;
+        }
+
+        private async Task LoadAllPokemonForGrid()
+        {
+            if (isLoading)
+                return;
+
+            isLoading = true;
+
+            try
+            {
+                for (int id = 1; id <= PokemonService.PokemonLimit; id++)
+                {
+                    var pokemon = await PokemonCache.GetCachedPokemonById(id);
+
+                    if (pokemon != null)
+                    {
+                        AllPokemonNames.Add(new PokemonGridItem
+                        {
+                            Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
+                            PokemonId = pokemon.Id
+                        });
+                    }
+                }
+
+                allPokemonCollectionView.ItemsSource = AllPokemonNames;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
+            }
+            finally
+            {
+                isLoading = false;
+            }
         }
 
         private async void OnSearchBarPressed(object? sender, EventArgs? e)
@@ -124,7 +153,7 @@ namespace PokemonTeamBuilder
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Not Favourite";
             pokemonFavouriteButton.IsVisible = true;
-            pokemonAddToTeamButton.IsVisible = true;
+            pokemonAddToTeamButton.IsVisible = teamId.HasValue;
         }
 
 
@@ -212,54 +241,6 @@ namespace PokemonTeamBuilder
             currentPokemonName = string.Empty;
         }
 
-        private async Task LoadAllPokemonForGrid()
-        {
-            if (isLoading || offset >= PokemonService.PokemonLimit)
-                return;
-
-            isLoading = true;
-
-            try
-            {
-                var newPokemonItems = new List<PokemonGridItem>();
-                int end = Math.Min(offset + pageSize, PokemonService.PokemonLimit);
-
-                for (int id = offset + 1; id <= end; id++)
-                {
-                    var pokemon = await PokemonCache.GetCachedPokemonById(id);
-
-                    if (pokemon != null)
-                    {
-                        newPokemonItems.Add(new PokemonGridItem
-                        {
-                            Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
-                            PokemonId = pokemon.Id
-                        });
-                    }
-                }
-
-                if (allPokemonCollectionView.ItemsSource == null)
-                {
-                    allPokemonCollectionView.ItemsSource = AllPokemonNames;
-                }
-
-                foreach (var item in newPokemonItems)
-                {
-                    AllPokemonNames.Add(item);
-                }
-
-                offset = end;
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
-            }
-            finally
-            {
-                isLoading = false;
-            }
-        }
-
         private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.FirstOrDefault() is PokemonGridItem selected)
@@ -268,11 +249,6 @@ namespace PokemonTeamBuilder
                 OnSearchBarPressed(null, null);
                 allPokemonCollectionView.SelectedItem = null;
             }
-        }
-
-        private async void AllPokemonCollectionView_RemainingItemsThresholdReached(object sender, EventArgs e)
-        {
-            await LoadAllPokemonForGrid();
         }
 
         protected override void OnSizeAllocated(double width, double height)
@@ -299,7 +275,6 @@ namespace PokemonTeamBuilder
                 await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={teamId.Value}&selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
 
                 teamId = null;
-                selectingPokemonForTeam = false;
             }
         }
     }

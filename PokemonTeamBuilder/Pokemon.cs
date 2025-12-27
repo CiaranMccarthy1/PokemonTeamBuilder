@@ -434,10 +434,12 @@ namespace PokemonTeamBuilder
 
     public class PokemonGridItem
     {
+        private const string SpriteBaseUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/";
+        
         public int PokemonId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string SpriteUrl => PokemonCache.GetCachedSpriteById(PokemonId) 
-            ?? $"{PokemonService.SpriteBaseUrl}{PokemonId}.png";
+            ?? $"{SpriteBaseUrl}{PokemonId}.png";
     }
 
     public class PokemonTeam

@@ -12,8 +12,6 @@ public partial class TeamsPage : ContentPage
     private ObservableCollection<PokemonTeam> teams = new();
     private string teamsFolder = string.Empty;
     private PokemonTeam? currentTeam;
-    private readonly PokemonService pokemonService;
-    private MainPage mainPage;
     private string selectedPokemon = string.Empty;
     private int? pendingTeamId;
 
@@ -36,7 +34,6 @@ public partial class TeamsPage : ContentPage
     public TeamsPage()
     {
         InitializeComponent();
-        pokemonService = new PokemonService(new HttpClient());
         InitializeTeamsFolder();
         LoadTeams();
         DisplayTeams();
@@ -278,12 +275,9 @@ public partial class TeamsPage : ContentPage
             teamsListView.IsVisible = false;
             teamDetailView.IsVisible = true;
 
-
             teamNameLabel.Text = team.Name;
 
-
             teamMembersContainer.Children.Clear();
-
 
             if (team.Pokemon == null || team.Pokemon.Count == 0)
             {
@@ -302,16 +296,7 @@ public partial class TeamsPage : ContentPage
 
             foreach (var teamPokemon in team.Pokemon)
             {
-                Pokemon? pokemon = null;
-
-                if (PokemonCache.IsCached(teamPokemon.Name.ToLower()))
-                {
-                    pokemon = await PokemonCache.GetCachedPokemon(teamPokemon.Name.ToLower());
-                }
-                else
-                {
-                    pokemon = await pokemonService.GetPokemon(teamPokemon.Name.ToLower());
-                }
+                Pokemon? pokemon = await PokemonCache.GetCachedPokemon(teamPokemon.Name.ToLower());
 
                 if (pokemon != null)
                 {
@@ -322,7 +307,7 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
-            var summary = pokemonService.CalculateTeamSummary(fullTeamMembers);
+            var summary = PokemonTeamCalculator.CalculateTeamSummary(fullTeamMembers);
 
             totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
             teamWeaknessesLabel.Text = $"Team Weaknesses: {string.Join(", ", summary.Weaknesses)}";
@@ -334,9 +319,6 @@ public partial class TeamsPage : ContentPage
             await DisplayAlert("Error", $"Failed to load team details: {ex.Message}", "OK");
         }
     }
-
-    
-
 
     private Grid CreateTeamMemberView(Pokemon pokemon)
     {
@@ -351,10 +333,10 @@ public partial class TeamsPage : ContentPage
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250, GridUnitType.Absolute) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 
-        // Pokemon Sprite
+        // Pokemon Sprite - use cached sprite
         var sprite = new Image
         {
-            Source = pokemon.Sprites?.FrontDefault ?? PokemonCache.GetCachedSprite(pokemon.Name.ToLower()),
+            Source = PokemonCache.GetCachedSprite(pokemon.Name.ToLower()),
             WidthRequest = 250,
             HeightRequest = 250,
             Aspect = Aspect.AspectFit,
@@ -556,9 +538,16 @@ public partial class TeamsPage : ContentPage
         if (currentTeam == null)
             return;
 
+        // Check team size limit
+        if (currentTeam.PokemonCount >= 6)
+        {
+            await DisplayAlert("Error", "Team is full (max 6 Pokémon)", "OK");
+            return;
+        }
+
         try
         {
-            var pokemon = await pokemonService.GetPokemon(pokemonName);
+            var pokemon = await PokemonCache.GetCachedPokemon(pokemonName);
 
             if (pokemon == null)
             {
@@ -569,7 +558,7 @@ public partial class TeamsPage : ContentPage
             var teamPokemon = new TeamPokemon
             {
                 Name = pokemon.Name,
-                SpriteUrl = pokemon.Sprites?.FrontDefault ?? string.Empty,
+                SpriteUrl = PokemonCache.GetCachedSprite(pokemon.Name.ToLower()) ?? string.Empty,
                 Types = pokemon.Types?.Select(t => t.Type.Name).ToList() ?? new List<string>(),
                 Level = 50
             };
@@ -578,8 +567,6 @@ public partial class TeamsPage : ContentPage
             currentTeam.PokemonCount = currentTeam.Pokemon.Count;
 
             SaveTeam(currentTeam);
-
-            //await DisplayAlert("Success", $"{PokemonFormatter.FormatPokemonName(pokemon.Name)} added to team!", "OK");
         }
         catch (Exception ex)
         {
@@ -597,7 +584,7 @@ public partial class TeamsPage : ContentPage
             return;
         }
             
-        Shell.Current.GoToAsync($"//MainPage?teamId={currentTeam.Id}&fromTeamsPage=true");
+        await Shell.Current.GoToAsync($"//SearchRoute/MainPage?teamId={currentTeam.Id}&fromTeamsPage=true");
     }
 }
 
