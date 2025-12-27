@@ -52,7 +52,13 @@ public partial class TeamsPage : ContentPage
             if (team != null)
             {
                 currentTeam = team;
-                await AddPokemonToTeam(selectedPokemon);
+                
+                // Only add if team isn't full (silently skip if full)
+                if (team.PokemonCount < 6)
+                {
+                    await AddPokemonToTeam(selectedPokemon);
+                }
+                
                 await LoadTeamDetail(team);
             }
 

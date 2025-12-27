@@ -12,7 +12,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Search Bar with rounded corners -->
+        <!-- Search Bar -->
         <Frame Grid.Row="0" Padding="0" CornerRadius="25" HasShadow="False"
                BackgroundColor="{DynamicResource FrameBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">

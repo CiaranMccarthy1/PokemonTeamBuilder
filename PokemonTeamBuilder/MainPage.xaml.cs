@@ -14,7 +14,7 @@ namespace PokemonTeamBuilder
         private bool isLoading = false;
         private int? teamId;
 
-        //takes HttpClient as parameter
+
         public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
@@ -169,14 +169,14 @@ namespace PokemonTeamBuilder
             }
             
 
-            // gets 10 pokeomon names that start with the query
+
             var suggestions = AllPokemonNames
                               .Where(p => p.Name.ToLower().StartsWith(query))
                               .Select(p => p.Name) 
                               .Take(10)
                               .ToList();
 
-            // hides if search abr empty or no suggestions
+
             suggestionListView.IsVisible = suggestions.Count > 0;
 
             suggestionListView.ItemsSource = suggestions;
@@ -228,7 +228,6 @@ namespace PokemonTeamBuilder
 
         private void ClearPokemonDisplay()
         {
-            // Resets all display elements
             pokemonSprite.Source = null;
             pokemonNameLabel.Text = string.Empty;
             pokemonHeightLabel.Text = string.Empty;

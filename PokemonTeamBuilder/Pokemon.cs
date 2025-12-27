@@ -363,10 +363,8 @@ namespace PokemonTeamBuilder
 
             foreach (var attacker in pokemonTypes)
             {
-                // Skip if attacker type not found in chart
                 if (!effectivenessChart.ContainsKey(attacker))
                     continue;
-                // Loop through defender types and their effectiveness
                 foreach (var defender in effectivenessChart[attacker])
                 {
                     // Only consider strengths (effectiveness > 1)
