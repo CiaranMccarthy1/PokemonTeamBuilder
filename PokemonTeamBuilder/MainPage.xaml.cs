@@ -29,6 +29,8 @@ namespace PokemonTeamBuilder
                 if (int.TryParse(value, out int id))
                 {
                     teamId = id;
+                    // Show back button when selecting for a team
+                    backToTeamButton.IsVisible = true;
                 }
             }
         }
@@ -36,6 +38,10 @@ namespace PokemonTeamBuilder
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Update back button visibility
+            backToTeamButton.IsVisible = teamId.HasValue;
+            
             if (!isInitialized)
             {
                 await LoadAllPokemonForGrid();
@@ -261,6 +267,16 @@ namespace PokemonTeamBuilder
             allPokemonCollectionView.IsVisible = true;
             pokemonDetailsGrid.IsVisible = false;
             ClearPokemonDisplay();
+        }
+
+        private async void OnBackToTeamClicked(object sender, EventArgs e)
+        {
+            if (teamId.HasValue)
+            {
+                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={teamId.Value}");
+                teamId = null;
+                backToTeamButton.IsVisible = false;
+            }
         }
 
         public async void OnAddTeamButtonClicked(object? sender, EventArgs? e)

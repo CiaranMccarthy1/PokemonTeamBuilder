@@ -9,11 +9,19 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Search Bar -->
-        <Frame Grid.Row="0" Padding="0" CornerRadius="25" HasShadow="False"
+        <Button x:Name="backToTeamButton"
+                Grid.Row="0"
+                Text="← Back to Team"
+                IsVisible="False"
+                BackgroundColor="{DynamicResource SecondaryColor}"
+                HorizontalOptions="Start"
+                Clicked="OnBackToTeamClicked" />
+
+        <Frame Grid.Row="1" Padding="0" CornerRadius="25" HasShadow="False"
                BackgroundColor="{DynamicResource FrameBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">
             <SearchBar x:Name="searchBar"
@@ -24,8 +32,7 @@
                        HorizontalOptions="Fill" />
         </Frame>
 
-        <!-- Suggestions ListView -->
-        <Frame Grid.Row="1" Padding="0" CornerRadius="12" HasShadow="False"
+        <Frame Grid.Row="2" Padding="0" CornerRadius="12" HasShadow="False"
                IsVisible="{Binding Source={x:Reference suggestionListView}, Path=IsVisible}"
                BackgroundColor="{DynamicResource CardBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">
@@ -40,7 +47,7 @@
 
         <!-- Pokemon Grid -->
         <CollectionView x:Name="allPokemonCollectionView"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         IsVisible="True"
                         SelectionMode="Single"
                         SelectionChanged="AllPokemonCollectionView_SelectionChanged"
@@ -82,7 +89,7 @@
         <!-- Pokemon Details Grid -->
         <Frame x:Name="pokemonDetailsGrid" 
                Grid.Row="0" 
-               Grid.RowSpan="3"
+               Grid.RowSpan="4"
                Padding="20"
                CornerRadius="20"
                IsVisible="False"
