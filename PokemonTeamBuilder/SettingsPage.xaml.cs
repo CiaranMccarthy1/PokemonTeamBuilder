@@ -11,6 +11,15 @@ namespace PokemonTeamBuilder
 
             string trainerName = Preferences.Get("TrainerName", "Ash Ketchum");
             trainerNameEntry.Text = trainerName;
+
+            UpdateDebugButtonColor();
+        }
+
+        private void UpdateDebugButtonColor()
+        {
+            bool isDebugMode = Preferences.Get("DebugMode", false);
+            debugModeButton.BackgroundColor = isDebugMode ? Colors.Green : Colors.Red;
+            debugModeButton.Text = isDebugMode ? "Debug Mode: ON" : "Debug Mode: OFF";
         }
 
         private void OnDarkModeToggled(object sender, ToggledEventArgs e)
@@ -42,8 +51,7 @@ namespace PokemonTeamBuilder
 
         private async void OnReloadPokemonClicked(object sender, EventArgs e)
         {
-
-            await DisplayAlert("Cache Location", FileSystem.AppDataDirectory, "OK");
+            await Debug.ShowCacheLocation(this);
 
             bool confirm = await DisplayAlert(
                 "Reload Pokémon Data",
@@ -60,6 +68,12 @@ namespace PokemonTeamBuilder
             downloader.ResetDownload();
 
             Application.Current.MainPage = new LoadingPage(downloader);
+        }
+
+        private void OnDebugModeClicked(object sender, EventArgs e)
+        {
+            Preferences.Set("DebugMode", !Preferences.Get("DebugMode", false));
+            UpdateDebugButtonColor();
         }
 
     }

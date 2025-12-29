@@ -80,7 +80,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to fetch species data for {pokemon.Name}: {ex.Message}");
+                Debug.LogException(ex, $"Failed to fetch species data for {pokemon.Name}");
             }
         }
 

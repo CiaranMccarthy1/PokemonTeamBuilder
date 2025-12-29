@@ -44,7 +44,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get favorites: {ex.Message}");
+                Debug.LogException(ex, "Failed to get favorites");
             }
 
             return new List<string>();
@@ -74,7 +74,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get cached Pokemon: {ex.Message}");
+                Debug.LogException(ex, "Failed to get cached Pokemon");
             }
 
             return null;
@@ -100,7 +100,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to cache Pokemon: {ex.Message}");
+                Debug.LogException(ex, "Failed to cache Pokemon");
             }
         }
 
@@ -122,7 +122,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to cache sprite: {ex.Message}");
+                Debug.LogException(ex, "Failed to cache sprite");
             }
         }
 
@@ -146,7 +146,7 @@ namespace PokemonTeamBuilder
             }
             catch(Exception ex) 
             { 
-                Console.WriteLine($"Failed to delete file: {ex.Message}");
+                Debug.LogException(ex, "Failed to delete file");
             }
         }
 
@@ -163,7 +163,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to save favorites: {ex.Message}");
+                Debug.LogException(ex, "Failed to save favorites");
             }
         }
 
@@ -178,7 +178,7 @@ namespace PokemonTeamBuilder
             return null;
         }
 
-        public static async Task<bool> IsFavouriteAsync(string pokemonName)
+        public static async Task<bool> IsFavourite(string pokemonName)
         {
             var favourites = await GetFavorites();
             return favourites.Contains(pokemonName);
@@ -202,7 +202,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get cached Pokemon by ID: {ex.Message}");
+                Debug.LogException(ex, "Failed to get cached Pokemon by ID");
             }
 
             return null;

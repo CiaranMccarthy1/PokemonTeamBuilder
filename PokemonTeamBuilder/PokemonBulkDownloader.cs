@@ -92,12 +92,12 @@ namespace PokemonTeamBuilder
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to download Pokemon #{id}: {ex.Message}");
+                        Debug.LogException(ex, $"Failed to download Pokemon #{id}");
                         failed++;
                     }
                 }
                 timer.Stop();
-                 
+                
 
                 await File.WriteAllTextAsync(downloadCompleteFile, DateTime.Now.ToString());
 
@@ -114,7 +114,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Bulk download failed: {ex.Message}");
+                Debug.LogException(ex, $"Bulk download failed");
                 return false;
             }
         }
@@ -143,7 +143,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to save Pokemon data: {ex.Message}");
+                Debug.LogException(ex, "Failed to save Pokemon data");
             }
         }
 
@@ -166,7 +166,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to download sprite: {ex.Message}");
+                Debug.LogException(ex, $"Failed to download sprite");
             }
         }
 
@@ -197,7 +197,7 @@ namespace PokemonTeamBuilder
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to reset download: {ex.Message}");
+                Debug.LogException(ex, "Failed to reset download");
             }
         }
     }

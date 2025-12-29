@@ -136,7 +136,7 @@ namespace PokemonTeamBuilder
 
                 if (pokemon != null)
                 {
-                    bool isFavourite = await PokemonCache.IsFavouriteAsync(query);
+                    bool isFavourite = await PokemonCache.IsFavourite(query);
                     await DisplayPokemon(pokemon, isFavourite);
                 }
                 else

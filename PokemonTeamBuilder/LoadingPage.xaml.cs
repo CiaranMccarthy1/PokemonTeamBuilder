@@ -24,8 +24,7 @@ public partial class LoadingPage : ContentPage
 
         if (success)
         {
-            await DisplayAlert("Download Complete", "All Pokémon data downloaded successfully!", "OK");
-            // Navigate to main page
+            await Debug.ShowDownloadComplete(this);
             Application.Current.MainPage = new AppShell();
         }
         else

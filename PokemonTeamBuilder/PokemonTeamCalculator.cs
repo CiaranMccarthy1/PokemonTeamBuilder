@@ -184,14 +184,12 @@
             if (summary.Strengths.Count == 0) summary.Strengths.Add("None");
             if (summary.Weaknesses.Count == 0) summary.Weaknesses.Add("None");
 
-            //System.Diagnostics.Debug.WriteLine($"=== Team Score Breakdown ===");
-            //System.Diagnostics.Debug.WriteLine($"Offensive Score: {offensiveScore}");
-            //System.Diagnostics.Debug.WriteLine($"Defensive Score: {defensiveScore}");
-            //System.Diagnostics.Debug.WriteLine($"BST Score: {bstScore} (Total BST: {totalBST})");
-            //System.Diagnostics.Debug.WriteLine($"Weakness Penalty: -{weaknessPenalty}");
-            //System.Diagnostics.Debug.WriteLine($"Final Score: {summary.TotalScore}");
-
+            Debug.LogTeamSummary(summary);
             return summary;
+
+
+
+
         }
     }
 }
