@@ -10,6 +10,7 @@ namespace PokemonTeamBuilder
         private readonly PokemonService pokemonService;
         private string currentPokemonName = string.Empty;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
+        private List<Pokemon> filterPokemonList = new();
         private bool isInitialized = false;
         private bool isLoading = false;
         private int? teamId;
@@ -19,34 +20,61 @@ namespace PokemonTeamBuilder
         {
             InitializeComponent();
             pokemonService = new PokemonService(httpClient);
-
         }
 
         public string TeamId
         {
             set
             {
-                if (int.TryParse(value, out int id))
+                if (!string.IsNullOrEmpty(value) && int.TryParse(value, out int id))
                 {
                     teamId = id;
-                    // Show back button when selecting for a team
-                    backToTeamButton.IsVisible = true;
+                }
+                else
+                {
+                    teamId = null;
                 }
             }
+        }
+
+        protected override void OnNavigatedTo(NavigatedToEventArgs args)
+        {
+            base.OnNavigatedTo(args);
+            backToTeamButton.IsVisible = teamId.HasValue;
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
             
-            // Update back button visibility
+
             backToTeamButton.IsVisible = teamId.HasValue;
+            
+
+            if (!teamId.HasValue && pokemonDetailsGrid.IsVisible)
+            {
+                allPokemonCollectionView.IsVisible = true;
+                pokemonDetailsGrid.IsVisible = false;
+                ClearPokemonDisplay();
+            }
             
             if (!isInitialized)
             {
                 await LoadAllPokemonForGrid();
                 isInitialized = true;
             }
+        }
+
+        protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+        {
+            base.OnNavigatedFrom(args);
+
+            teamId = null;
+            backToTeamButton.IsVisible = false;
+            
+            allPokemonCollectionView.IsVisible = true;
+            pokemonDetailsGrid.IsVisible = false;
+            ClearPokemonDisplay();
         }
 
         protected override void OnDisappearing()
@@ -70,6 +98,8 @@ namespace PokemonTeamBuilder
 
                     if (pokemon != null)
                     {
+                        filterPokemonList.Add(pokemon);
+
                         AllPokemonNames.Add(new PokemonGridItem
                         {
                             Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
@@ -138,11 +168,13 @@ namespace PokemonTeamBuilder
                 return;
             }
 
-            // Show details, hide grid
+            // Hide search bar, filters, and grid
+            searchBarFrame.IsVisible = false;
+            filterFrame.IsVisible = false;
+            typeFilterDropdown.IsVisible = false;
             allPokemonCollectionView.IsVisible = false;
             pokemonDetailsGrid.IsVisible = true;
 
-            // Format and display Pokemon data
             string formattedName = PokemonFormatter.FormatPokemonName(pokemon.Name);
             string types = pokemon.Types != null
                 ? string.Join(", ", pokemon.Types.Select(t => PokemonFormatter.FormatPokemonName(t.Type.Name)))
@@ -243,6 +275,7 @@ namespace PokemonTeamBuilder
             pokemonStrenghtLabel.Text = string.Empty;
             pokemonWeaknessLabel.Text = string.Empty;
             pokemonFavouriteButton.IsVisible = false;
+            pokemonAddToTeamButton.IsVisible = false;
             currentPokemonName = string.Empty;
         }
 
@@ -259,13 +292,16 @@ namespace PokemonTeamBuilder
         protected override void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
-            allPokemonCollectionView.HeightRequest = height -80;
         }
 
         public void OnBackButtonClicked(object sender, EventArgs e)
         {
+            // Show search bar, filters, and grid
+            searchBarFrame.IsVisible = true;
+            filterFrame.IsVisible = true;
             allPokemonCollectionView.IsVisible = true;
             pokemonDetailsGrid.IsVisible = false;
+            // Keep backToTeamButton visible if teamId is set (don't hide it when going back to grid)
             ClearPokemonDisplay();
         }
 
@@ -273,9 +309,10 @@ namespace PokemonTeamBuilder
         {
             if (teamId.HasValue)
             {
-                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={teamId.Value}");
+                int savedTeamId = teamId.Value;
                 teamId = null;
                 backToTeamButton.IsVisible = false;
+                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={savedTeamId}");
             }
         }
 
@@ -286,10 +323,195 @@ namespace PokemonTeamBuilder
 
             if (teamId.HasValue)
             {
-              
-                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={teamId.Value}&selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
-
+                int savedTeamId = teamId.Value;
                 teamId = null;
+                backToTeamButton.IsVisible = false;
+                pokemonAddToTeamButton.IsVisible = false;
+                
+                await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={savedTeamId}&selectedPokemon={Uri.EscapeDataString(currentPokemonName)}");
+            }
+        }
+
+        private void OnFilterChanged(object sender, EventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private void OnTypeFilterChanged(object sender, CheckedChangedEventArgs e)
+        {
+            UpdateTypeFilterButtonText();
+            ApplyFilters();
+        }
+
+        private void OnTypeFilterButtonClicked(object sender, EventArgs e)
+        {
+            typeFilterDropdown.IsVisible = !typeFilterDropdown.IsVisible;
+            typeFilterButton.Text = typeFilterDropdown.IsVisible ? "Types ▲" : "Types ▼";
+        }
+
+        private void OnTypeFilterDoneClicked(object sender, EventArgs e)
+        {
+            typeFilterDropdown.IsVisible = false;
+            typeFilterButton.Text = "Types ▼";
+        }
+
+        private void UpdateTypeFilterButtonText()
+        {
+            var selectedTypes = GetSelectedTypes();
+            if (selectedTypes.Count == 0)
+            {
+                typeFilterButton.Text = typeFilterDropdown.IsVisible ? "Types ▲" : "Types ▼";
+            }
+            else if (selectedTypes.Count <= 2)
+            {
+                string types = string.Join(", ", selectedTypes.Select(t => char.ToUpper(t[0]) + t.Substring(1)));
+                typeFilterButton.Text = types + (typeFilterDropdown.IsVisible ? " ▲" : " ▼");
+            }
+            else
+            {
+                typeFilterButton.Text = $"{selectedTypes.Count} types" + (typeFilterDropdown.IsVisible ? " ▲" : " ▼");
+            }
+        }
+
+        private void OnClearFiltersClicked(object sender, EventArgs e)
+        {
+            fireCheckBox.IsChecked = false;
+            waterCheckBox.IsChecked = false;
+            grassCheckBox.IsChecked = false;
+            electricCheckBox.IsChecked = false;
+            psychicCheckBox.IsChecked = false;
+            iceCheckBox.IsChecked = false;
+            dragonCheckBox.IsChecked = false;
+            darkCheckBox.IsChecked = false;
+            fairyCheckBox.IsChecked = false;
+            normalCheckBox.IsChecked = false;
+            fightingCheckBox.IsChecked = false;
+            flyingCheckBox.IsChecked = false;
+            poisonCheckBox.IsChecked = false;
+            groundCheckBox.IsChecked = false;
+            rockCheckBox.IsChecked = false;
+            bugCheckBox.IsChecked = false;
+            ghostCheckBox.IsChecked = false;
+            steelCheckBox.IsChecked = false;
+
+            generationFilterPicker.SelectedIndex = -1;
+            rarityFilterPicker.SelectedIndex = -1;
+            sortPicker.SelectedIndex = -1;
+
+            minTbsEntry.Text = string.Empty;
+            maxTbsEntry.Text = string.Empty;
+
+            typeFilterDropdown.IsVisible = false;
+            typeFilterButton.Text = "Types ▼";
+
+            ApplyFilters();
+        }
+
+        private void OnSortChanged(object sender, EventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private List<string> GetSelectedTypes()
+        {
+            var selectedTypes = new List<string>();
+
+            if (fireCheckBox.IsChecked) selectedTypes.Add("fire");
+            if (waterCheckBox.IsChecked) selectedTypes.Add("water");
+            if (grassCheckBox.IsChecked) selectedTypes.Add("grass");
+            if (electricCheckBox.IsChecked) selectedTypes.Add("electric");
+            if (psychicCheckBox.IsChecked) selectedTypes.Add("psychic");
+            if (iceCheckBox.IsChecked) selectedTypes.Add("ice");
+            if (dragonCheckBox.IsChecked) selectedTypes.Add("dragon");
+            if (darkCheckBox.IsChecked) selectedTypes.Add("dark");
+            if (fairyCheckBox.IsChecked) selectedTypes.Add("fairy");
+            if (normalCheckBox.IsChecked) selectedTypes.Add("normal");
+            if (fightingCheckBox.IsChecked) selectedTypes.Add("fighting");
+            if (flyingCheckBox.IsChecked) selectedTypes.Add("flying");
+            if (poisonCheckBox.IsChecked) selectedTypes.Add("poison");
+            if (groundCheckBox.IsChecked) selectedTypes.Add("ground");
+            if (rockCheckBox.IsChecked) selectedTypes.Add("rock");
+            if (bugCheckBox.IsChecked) selectedTypes.Add("bug");
+            if (ghostCheckBox.IsChecked) selectedTypes.Add("ghost");
+            if (steelCheckBox.IsChecked) selectedTypes.Add("steel");
+
+            return selectedTypes;
+        }
+
+        private void ApplyFilters()
+        {
+            var filtered = filterPokemonList.AsEnumerable();
+
+            var selectedTypes = GetSelectedTypes();
+            if (selectedTypes.Count > 0)
+            {
+                filtered = filtered.Where(p =>
+                    p.Types != null && 
+                    selectedTypes.All(selectedType => 
+                        p.Types.Any(t => t.Type.Name.ToLower() == selectedType)));
+            }
+
+            if (int.TryParse(minTbsEntry.Text, out int minTbs))
+            {
+                filtered = filtered.Where(p => p.TotalBaseStats >= minTbs);
+            }
+
+            if (int.TryParse(maxTbsEntry.Text, out int maxTbs))
+            {
+                filtered = filtered.Where(p => p.TotalBaseStats <= maxTbs);
+            }
+
+            string selectedGen = generationFilterPicker.SelectedItem?.ToString() ?? "All";
+            if (selectedGen != "All")
+            {
+                if (int.TryParse(selectedGen.Replace("Gen ", ""), out int gen))
+                {
+                    filtered = filtered.Where(p => p.Generation == gen);
+                }
+            }
+
+            string rarity = rarityFilterPicker.SelectedItem?.ToString() ?? "All";
+            filtered = rarity switch
+            {
+                "Legendary" => filtered.Where(p => p.IsLegendary),
+                "Mythical" => filtered.Where(p => p.IsMythical),
+                "Regular" => filtered.Where(p => !p.IsLegendary && !p.IsMythical),
+                _ => filtered
+            };
+
+            // Apply sorting
+            string sortOption = sortPicker.SelectedItem?.ToString() ?? "Dex # ↑";
+            filtered = sortOption switch
+            {
+                "Dex # ↑" => filtered.OrderBy(p => p.Id),
+                "Dex # ↓" => filtered.OrderByDescending(p => p.Id),
+                "A-Z" => filtered.OrderBy(p => p.Name),
+                "Z-A" => filtered.OrderByDescending(p => p.Name),
+                "BST ↑" => filtered.OrderBy(p => p.TotalBaseStats),
+                "BST ↓" => filtered.OrderByDescending(p => p.TotalBaseStats),
+                "HP ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "hp")?.BaseStat ?? 0),
+                "HP ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "hp")?.BaseStat ?? 0),
+                "Attack ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "attack")?.BaseStat ?? 0),
+                "Attack ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "attack")?.BaseStat ?? 0),
+                "Defense ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "defense")?.BaseStat ?? 0),
+                "Defense ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "defense")?.BaseStat ?? 0),
+                "Sp. Atk ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "special-attack")?.BaseStat ?? 0),
+                "Sp. Atk ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "special-attack")?.BaseStat ?? 0),
+                "Sp. Def ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "special-defense")?.BaseStat ?? 0),
+                "Sp. Def ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "special-defense")?.BaseStat ?? 0),
+                "Speed ↑" => filtered.OrderBy(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "speed")?.BaseStat ?? 0),
+                "Speed ↓" => filtered.OrderByDescending(p => p.Stats?.FirstOrDefault(s => s.Stat.Name == "speed")?.BaseStat ?? 0),
+                _ => filtered.OrderBy(p => p.Id)
+            };
+
+            AllPokemonNames.Clear();
+            foreach (var pokemon in filtered)
+            {
+                AllPokemonNames.Add(new PokemonGridItem
+                {
+                    Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
+                    PokemonId = pokemon.Id
+                });
             }
         }
     }

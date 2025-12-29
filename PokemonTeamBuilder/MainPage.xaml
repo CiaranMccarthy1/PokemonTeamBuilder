@@ -10,18 +10,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Button x:Name="backToTeamButton"
-                Grid.Row="0"
-                Text="← Back to Team"
-                IsVisible="False"
-                BackgroundColor="{DynamicResource SecondaryColor}"
-                HorizontalOptions="Start"
-                Clicked="OnBackToTeamClicked" />
-
-        <Frame Grid.Row="1" Padding="0" CornerRadius="25" HasShadow="False"
+        <Frame x:Name="searchBarFrame" Grid.Row="0" Padding="0" CornerRadius="25" HasShadow="False"
                BackgroundColor="{DynamicResource FrameBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">
             <SearchBar x:Name="searchBar"
@@ -32,7 +25,7 @@
                        HorizontalOptions="Fill" />
         </Frame>
 
-        <Frame Grid.Row="2" Padding="0" CornerRadius="12" HasShadow="False"
+        <Frame Grid.Row="1" Padding="0" CornerRadius="12" HasShadow="False"
                IsVisible="{Binding Source={x:Reference suggestionListView}, Path=IsVisible}"
                BackgroundColor="{DynamicResource CardBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">
@@ -45,9 +38,224 @@
                       HorizontalOptions="Fill" />
         </Frame>
 
+        <Frame x:Name="filterFrame" Grid.Row="2" Padding="12,8" CornerRadius="12" HasShadow="False"
+               BackgroundColor="{DynamicResource CardBackgroundColor}"
+               BorderColor="{DynamicResource BorderColor}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="backToTeamButton" Grid.Column="0"
+                        Text="← Back to Team"
+                        IsVisible="False"
+                        BackgroundColor="{DynamicResource SecondaryColor}"
+                        FontSize="12" Padding="12,8" VerticalOptions="Center"
+                        Clicked="OnBackToTeamClicked" />
+
+                <Button x:Name="typeFilterButton" Grid.Column="1" Text="Types ▼" 
+                        Clicked="OnTypeFilterButtonClicked"
+                        BackgroundColor="{DynamicResource SurfaceColor}"
+                        TextColor="{DynamicResource TextColor}"
+                        FontSize="12" Padding="12,8" VerticalOptions="Center" />
+
+                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Gen:" VerticalOptions="Center" />
+                    <Picker x:Name="generationFilterPicker" WidthRequest="90" 
+                            BackgroundColor="{DynamicResource SurfaceColor}"
+                            SelectedIndexChanged="OnFilterChanged">
+                        <Picker.Items>
+                            <x:String>All</x:String>
+                            <x:String>Gen 1</x:String>
+                            <x:String>Gen 2</x:String>
+                            <x:String>Gen 3</x:String>
+                            <x:String>Gen 4</x:String>
+                            <x:String>Gen 5</x:String>
+                            <x:String>Gen 6</x:String>
+                            <x:String>Gen 7</x:String>
+                            <x:String>Gen 8</x:String>
+                            <x:String>Gen 9</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="3" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Rarity:" VerticalOptions="Center" />
+                    <Picker x:Name="rarityFilterPicker" WidthRequest="110" 
+                            BackgroundColor="{DynamicResource SurfaceColor}"
+                            SelectedIndexChanged="OnFilterChanged">
+                        <Picker.Items>
+                            <x:String>All</x:String>
+                            <x:String>Legendary</x:String>
+                            <x:String>Mythical</x:String>
+                            <x:String>Regular</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="4" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Min TBS:" VerticalOptions="Center" />
+                    <Entry x:Name="minTbsEntry" Keyboard="Numeric" Placeholder="0" WidthRequest="55" 
+                           BackgroundColor="{DynamicResource SurfaceColor}"
+                           TextChanged="OnFilterChanged"/>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="5" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Max TBS:" VerticalOptions="Center" />
+                    <Entry x:Name="maxTbsEntry" Keyboard="Numeric" Placeholder="999" WidthRequest="55" 
+                           BackgroundColor="{DynamicResource SurfaceColor}"
+                           TextChanged="OnFilterChanged"/>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="6" Spacing="6" VerticalOptions="Center">
+                    <Label Text="Sort:" VerticalOptions="Center" />
+                    <Picker x:Name="sortPicker" WidthRequest="130" 
+                            BackgroundColor="{DynamicResource SurfaceColor}"
+                            SelectedIndexChanged="OnSortChanged">
+                        <Picker.Items>
+                            <x:String>Dex # ↑</x:String>
+                            <x:String>Dex # ↓</x:String>
+                            <x:String>A-Z</x:String>
+                            <x:String>Z-A</x:String>
+                            <x:String>BST ↑</x:String>
+                            <x:String>BST ↓</x:String>
+                            <x:String>HP ↑</x:String>
+                            <x:String>HP ↓</x:String>
+                            <x:String>Attack ↑</x:String>
+                            <x:String>Attack ↓</x:String>
+                            <x:String>Defense ↑</x:String>
+                            <x:String>Defense ↓</x:String>
+                            <x:String>Sp. Atk ↑</x:String>
+                            <x:String>Sp. Atk ↓</x:String>
+                            <x:String>Sp. Def ↑</x:String>
+                            <x:String>Sp. Def ↓</x:String>
+                            <x:String>Speed ↑</x:String>
+                            <x:String>Speed ↓</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </HorizontalStackLayout>
+
+                <Button Grid.Column="7" Text="Clear" Clicked="OnClearFiltersClicked" 
+                        BackgroundColor="{DynamicResource SecondaryColor}"
+                        FontSize="12" Padding="12,8" VerticalOptions="Center" />
+            </Grid>
+        </Frame>
+
+        <Frame x:Name="typeFilterDropdown" Grid.Row="3" Padding="12" CornerRadius="12" HasShadow="False"
+               IsVisible="False"
+               BackgroundColor="{DynamicResource CardBackgroundColor}"
+               BorderColor="{DynamicResource BorderColor}">
+            <VerticalStackLayout Spacing="8">
+                <HorizontalStackLayout>
+                    <Label Text="Select Types:" FontAttributes="Bold" VerticalOptions="Center" />
+                    <Button Text="Done" Clicked="OnTypeFilterDoneClicked" 
+                            BackgroundColor="{DynamicResource AccentColor}"
+                            FontSize="12" Padding="8,4" Margin="12,0,0,0" />
+                </HorizontalStackLayout>
+                <Grid ColumnSpacing="0" RowSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="0" VerticalOptions="Center">
+                        <CheckBox x:Name="fireCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Fire" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center">
+                        <CheckBox x:Name="waterCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Water" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="2" VerticalOptions="Center">
+                        <CheckBox x:Name="grassCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Grass" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" VerticalOptions="Center">
+                        <CheckBox x:Name="electricCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Electric" VerticalOptions="Center" Margin="-90,0,5,0" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="4" VerticalOptions="Center">
+                        <CheckBox x:Name="psychicCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Psychic" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="5" VerticalOptions="Center">
+                        <CheckBox x:Name="iceCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Ice" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="6" VerticalOptions="Center">
+                        <CheckBox x:Name="dragonCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Dragon" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="7" VerticalOptions="Center">
+                        <CheckBox x:Name="darkCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Dark" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="8" VerticalOptions="Center">
+                        <CheckBox x:Name="fairyCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Fairy" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="0" VerticalOptions="Center">
+                        <CheckBox x:Name="normalCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Normal" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="1" VerticalOptions="Center">
+                        <CheckBox x:Name="fightingCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Fighting" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="2" VerticalOptions="Center">
+                        <CheckBox x:Name="flyingCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Flying" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="3" VerticalOptions="Center">
+                        <CheckBox x:Name="poisonCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Poison" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="4" VerticalOptions="Center">
+                        <CheckBox x:Name="groundCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Ground" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="5" VerticalOptions="Center">
+                        <CheckBox x:Name="rockCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Rock" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="6" VerticalOptions="Center">
+                        <CheckBox x:Name="bugCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Bug" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="7" VerticalOptions="Center">
+                        <CheckBox x:Name="ghostCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Ghost" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="1" Grid.Column="8" VerticalOptions="Center">
+                        <CheckBox x:Name="steelCheckBox" CheckedChanged="OnTypeFilterChanged" />
+                        <Label Text="Steel" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                    </HorizontalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+        </Frame>
+
         <!-- Pokemon Grid -->
         <CollectionView x:Name="allPokemonCollectionView"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         IsVisible="True"
                         SelectionMode="Single"
                         SelectionChanged="AllPokemonCollectionView_SelectionChanged"
@@ -89,7 +297,7 @@
         <!-- Pokemon Details Grid -->
         <Frame x:Name="pokemonDetailsGrid" 
                Grid.Row="0" 
-               Grid.RowSpan="4"
+               Grid.RowSpan="5"
                Padding="20"
                CornerRadius="20"
                IsVisible="False"
@@ -98,7 +306,7 @@
                HasShadow="False"
                HorizontalOptions="Center"
                VerticalOptions="Center">
-            
+
             <Grid ColumnSpacing="30">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
