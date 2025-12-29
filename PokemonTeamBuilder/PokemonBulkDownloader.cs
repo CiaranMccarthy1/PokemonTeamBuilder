@@ -88,7 +88,7 @@ namespace PokemonTeamBuilder
                             failed++;
                         }
 
-                        await Task.Delay(200);
+                        await Task.Delay(10);
                     }
                     catch (Exception ex)
                     {

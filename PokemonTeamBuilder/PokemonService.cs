@@ -41,7 +41,47 @@ namespace PokemonTeamBuilder
                 pokemon.Weaknesses = PokemonTypeEffectiveness.GetWeaknesses(typeNames);
             }
 
+            await FetchSpeciesData(pokemon);
+
             return pokemon;
+        }
+
+        private async Task FetchSpeciesData(Pokemon? pokemon)
+        {
+            if (pokemon == null) return;
+
+            try
+            {
+                string speciesUrl = $"{BaseUrl}pokemon-species/{pokemon.Id}";
+                var response = await httpClient.GetAsync(speciesUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var speciesData = JsonSerializer.Deserialize<PokemonSpeciesResponse>(json, JsonOptions);
+
+                    if (speciesData != null)
+                    {
+                        pokemon.IsLegendary = speciesData.IsLegendary;
+                        pokemon.IsMythical = speciesData.IsMythical;
+                        
+                      
+                        if (speciesData.Generation?.Url != null)
+                        {
+                            var genUrl = speciesData.Generation.Url.TrimEnd('/');
+                            var genNumber = genUrl.Split('/').LastOrDefault();
+                            if (int.TryParse(genNumber, out int gen))
+                            {
+                                pokemon.Generation = gen;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch species data for {pokemon.Name}: {ex.Message}");
+            }
         }
 
         public async Task<List<PokemonListItem>> GetAllPokemonNames(int limit = 50, int offset = 0)
@@ -60,7 +100,22 @@ namespace PokemonTeamBuilder
     }
 }
 
+public class PokemonSpeciesResponse
+{
+    [System.Text.Json.Serialization.JsonPropertyName("is_legendary")]
+    public bool IsLegendary { get; set; }
 
+    [System.Text.Json.Serialization.JsonPropertyName("is_mythical")]
+    public bool IsMythical { get; set; }
+
+    public GenerationReference? Generation { get; set; }
+}
+
+public class GenerationReference
+{
+    public string Name { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+}
 
 public class PokemonListResponse
 {

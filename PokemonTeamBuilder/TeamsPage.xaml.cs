@@ -45,7 +45,6 @@ public partial class TeamsPage : ContentPage
         LoadTeams();
         DisplayTeams();
 
-        // Handle returning from MainPage with a selected Pokemon
         if (!string.IsNullOrEmpty(selectedPokemon) && pendingTeamId.HasValue)
         {
             var team = teams.FirstOrDefault(t => t.Id == pendingTeamId.Value);
@@ -53,7 +52,6 @@ public partial class TeamsPage : ContentPage
             {
                 currentTeam = team;
                 
-                // Only add if team isn't full (silently skip if full)
                 if (team.PokemonCount < 6)
                 {
                     await AddPokemonToTeam(selectedPokemon);
@@ -62,7 +60,6 @@ public partial class TeamsPage : ContentPage
                 await LoadTeamDetail(team);
             }
 
-            // Clear the pending values
             selectedPokemon = string.Empty;
             pendingTeamId = null;
         }
@@ -112,7 +109,6 @@ public partial class TeamsPage : ContentPage
     {
         teamGrid.Children.Clear();
 
-        // Show/hide empty message and floating button based on team count
         if (teams.Count == 0)
         {
             emptyTeamsMessage.IsVisible = true;
@@ -215,37 +211,43 @@ public partial class TeamsPage : ContentPage
         Grid.SetRow(headerGrid, 0);
         mainLayout.Children.Add(headerGrid);
 
-        // Display Pokemon sprites grid
-        if (team.PokemonCount > 0)
+        var pokemonGrid = new Grid
         {
-            var pokemonGrid = new Grid
+            ColumnDefinitions = new ColumnDefinitionCollection
             {
-                ColumnDefinitions = new ColumnDefinitionCollection
-                {
-                    new ColumnDefinition { Width = new GridLength(110) },
-                    new ColumnDefinition { Width = new GridLength(110) },
-                    new ColumnDefinition { Width = new GridLength(110) }
-                },
-                RowDefinitions = new RowDefinitionCollection
-                {
-                    new RowDefinition { Height = new GridLength(60) },
-                    new RowDefinition { Height = new GridLength(60) }
-                },
-                ColumnSpacing = 10,
-                RowSpacing = 20,
-                HorizontalOptions = LayoutOptions.Center,
-                Margin = new Thickness(10, 10, 0, 0)
-            };
+                new ColumnDefinition { Width = new GridLength(60) },
+                new ColumnDefinition { Width = new GridLength(60) },
+                new ColumnDefinition { Width = new GridLength(60) }
+            },
+            RowDefinitions = new RowDefinitionCollection
+            {
+                new RowDefinition { Height = new GridLength(60) },
+                new RowDefinition { Height = new GridLength(60) }
+            },
+            ColumnSpacing = 10,
+            RowSpacing = 10,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
 
-            for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
+        {
+            if (team.Pokemon != null && i < team.Pokemon.Count)
             {
-                if (i < team.Pokemon.Count)
+                var spriteSource = team.Pokemon[i].SpriteUrl;
+                if (string.IsNullOrEmpty(spriteSource) || !File.Exists(spriteSource))
+                {
+                    spriteSource = PokemonCache.GetCachedSprite(team.Pokemon[i].Name.ToLower());
+                }
+
+                if (!string.IsNullOrEmpty(spriteSource))
                 {
                     var image = new Image
                     {
-                        Source = team.Pokemon[i].SpriteUrl,
-                        WidthRequest = 60,
-                        HeightRequest = 60,
+                        Source = spriteSource,
+                        WidthRequest = 50,
+                        HeightRequest = 50,
                         Aspect = Aspect.AspectFit
                     };
                     Grid.SetRow(image, i / 3);
@@ -256,20 +258,33 @@ public partial class TeamsPage : ContentPage
                 {
                     var box = new BoxView
                     {
-                        Color = Color.FromArgb("#808080"),
-                        WidthRequest = 60,
-                        HeightRequest = 60,
+                        WidthRequest = 50,
+                        HeightRequest = 50,
                         CornerRadius = 5
                     };
+                    box.SetDynamicResource(BoxView.ColorProperty, "SurfaceColor");
                     Grid.SetRow(box, i / 3);
                     Grid.SetColumn(box, i % 3);
                     pokemonGrid.Children.Add(box);
                 }
             }
-
-            Grid.SetRow(pokemonGrid, 1);
-            mainLayout.Children.Add(pokemonGrid);
+            else
+            {
+                var box = new BoxView
+                {
+                    WidthRequest = 50,
+                    HeightRequest = 50,
+                    CornerRadius = 5
+                };
+                box.SetDynamicResource(BoxView.ColorProperty, "SurfaceColor");
+                Grid.SetRow(box, i / 3);
+                Grid.SetColumn(box, i % 3);
+                pokemonGrid.Children.Add(box);
+            }
         }
+
+        Grid.SetRow(pokemonGrid, 1);
+        mainLayout.Children.Add(pokemonGrid);
 
         border.Content = mainLayout;
 
@@ -352,7 +367,6 @@ public partial class TeamsPage : ContentPage
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180, GridUnitType.Absolute) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 
-        // Pokemon Sprite - use cached sprite
         var spriteFrame = new Microsoft.Maui.Controls.Frame
         {
             WidthRequest = 160,
@@ -524,7 +538,6 @@ public partial class TeamsPage : ContentPage
                 LoadTeams();
                 DisplayTeams();
 
-                // Set currentTeam to the new team object and show detail view
                 currentTeam = newTeam;
                 await LoadTeamDetail(newTeam);
             }
@@ -577,7 +590,7 @@ public partial class TeamsPage : ContentPage
         if (currentTeam == null)
             return;
 
-        // Check team size limit
+
         if (currentTeam.PokemonCount >= 6)
         {
             await DisplayAlert("Error", "Team is full (max 6 Pokémon)", "OK");

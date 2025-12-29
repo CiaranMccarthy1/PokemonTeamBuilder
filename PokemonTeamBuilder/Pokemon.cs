@@ -13,8 +13,10 @@ namespace PokemonTeamBuilder
         public List<PokemonStrengthWrapper> Strengths { get; set; }
         public List<PokemonWeaknessWrapper> Weaknesses { get; set; }
         public List<PokemonStat> BaseTotal { get; set; }
+        public int Generation { get; set; }
+        public bool IsLegendary { get; set; }
+        public bool IsMythical { get; set; }
 
-        // Need to move to sperate class
         [JsonPropertyName("stats")]
         public List<PokemonStat> Stats { get; set; }
 

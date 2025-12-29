@@ -169,7 +169,8 @@ namespace PokemonTeamBuilder
 
         public static string GetCachedSprite(string name)
         {
-            var spritePath = System.IO.Path.Combine(spritesFolder, $"{name.ToLower()}.png");
+            InitializeFolders();
+            var spritePath = Path.Combine(spritesFolder, $"{name.ToLower()}.png");
             if (File.Exists(spritePath))
             {
                 return spritePath;
