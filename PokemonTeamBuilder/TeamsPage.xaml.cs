@@ -43,7 +43,12 @@ public partial class TeamsPage : ContentPage
     {
         base.OnAppearing();
         LoadTeams();
-        DisplayTeams();
+
+        if (!teamDetailView.IsVisible)
+        {
+            DisplayTeams();
+        }
+        
 
         if (!string.IsNullOrEmpty(selectedPokemon) && pendingTeamId.HasValue)
         {
@@ -51,12 +56,13 @@ public partial class TeamsPage : ContentPage
             if (team != null)
             {
                 currentTeam = team;
-                
+
                 if (team.PokemonCount < 6)
                 {
                     await AddPokemonToTeam(selectedPokemon);
+                    DisplayTeams();
                 }
-                
+
                 await LoadTeamDetail(team);
             }
 
@@ -65,7 +71,12 @@ public partial class TeamsPage : ContentPage
         }
         else if (currentTeam != null && teamDetailView.IsVisible)
         {
-            await LoadTeamDetail(currentTeam);
+            var reloadedTeam = teams.FirstOrDefault(t => t.Id == currentTeam.Id);
+            if (reloadedTeam != null)
+            {
+                currentTeam = reloadedTeam;
+                await LoadTeamDetail(currentTeam);
+            }
         }
     }
 
@@ -457,7 +468,6 @@ public partial class TeamsPage : ContentPage
         weaknessLabel.SetDynamicResource(Label.TextColorProperty, "ErrorColor");
         detailsStack.Children.Add(weaknessLabel);
 
-        // Remove from team button
         var removeButton = new Button
         {
             Text = "Remove from Team",
@@ -481,7 +491,7 @@ public partial class TeamsPage : ContentPage
     {
         teamDetailView.IsVisible = false;
         teamsListView.IsVisible = true;
-        currentTeam = null!;
+        currentTeam = null; 
     }
 
     private async Task RemovePokemonFromTeam(string pokemonName)
@@ -504,6 +514,14 @@ public partial class TeamsPage : ContentPage
                 currentTeam.PokemonCount = currentTeam.Pokemon.Count;
 
                 SaveTeam(currentTeam);
+                LoadTeams();
+                DisplayTeams();
+                var reloadedTeam = teams.FirstOrDefault(t => t.Id == currentTeam.Id);
+                if (reloadedTeam != null)
+                {
+                    currentTeam = reloadedTeam;
+                    await LoadTeamDetail(currentTeam);
+                }
                 await LoadTeamDetail(currentTeam);
 
                 await DisplayAlert("Success", $"{PokemonFormatter.FormatPokemonName(pokemonName)} removed from team", "OK");
@@ -637,6 +655,14 @@ public partial class TeamsPage : ContentPage
         }
             
         await Shell.Current.GoToAsync($"//SearchRoute/MainPage?teamId={currentTeam.Id}&fromTeamsPage=true");
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        teamDetailView.IsVisible = false;
+        teamsListView.IsVisible = true;
+        currentTeam = null;
     }
 }
 
