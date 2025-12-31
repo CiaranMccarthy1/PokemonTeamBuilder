@@ -523,8 +523,6 @@ public partial class TeamsPage : ContentPage
                     await LoadTeamDetail(currentTeam);
                 }
                 await LoadTeamDetail(currentTeam);
-
-                await DisplayAlert("Success", $"{PokemonFormatter.FormatPokemonName(pokemonName)} removed from team", "OK");
             }
         }
         catch (Exception ex)

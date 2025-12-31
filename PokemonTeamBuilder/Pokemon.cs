@@ -24,7 +24,20 @@ namespace PokemonTeamBuilder
         public bool Favourite { get; set; }
 
         [JsonIgnore]
-        public int TotalBaseStats => Stats?.Sum(s => s.BaseStat) ?? 0;
+        public int TotalBaseStats
+        {
+            get
+            {
+                if (Stats == null)
+                {
+                    Debug.Log($"[TotalBaseStats] Pokemon '{Name}' (Id={Id}) has null Stats");
+                    return 0;
+                }
+                var sum = Stats.Sum(s => s.BaseStat);
+                Debug.Log($"[TotalBaseStats] Pokemon '{Name}' (Id={Id}) stats count={Stats.Count}, sum={sum}");
+                return sum;
+            }
+        }
     }
 
     public class PokemonSprites
@@ -64,61 +77,10 @@ namespace PokemonTeamBuilder
         public string FrontDefault { get; set; }
     }
 
-    public class GenerationII
-    {
-        [JsonPropertyName("crystal")]
-        public CrystalSprites Crystal { get; set; }
-
-    }
-
-    public class CrystalSprites
-    {
-        [JsonPropertyName("front_default")]
-        public string FrontDefault { get; set; }
-    }
-
     public class PokemonTypeWrapper
     {
         public PokemonType Type { get; set; }
     }
-
-    public class GenerationIII
-    {
-        [JsonPropertyName("emerald")]
-        public EmeraldSprites Emerald { get; set; }
-    }
-
-    public class EmeraldSprites
-    {
-        [JsonPropertyName("front_default")]
-        public string FrontDefault { get; set; }
-    }
-
-    public class GenerationIV
-    {
-        [JsonPropertyName("platinum")]
-        public PlatinumSprites Platinum { get; set; }
-    }
-
-    public class PlatinumSprites
-    {
-        [JsonPropertyName("front_default")]
-        public string FrontDefault { get; set; }
-    }
-
-    public class GenerationV
-    {
-        [JsonPropertyName("black-white")]
-        public BlackWhiteSprites BlackWhite { get; set; }
-    }
-
-    public class BlackWhiteSprites
-    {
-        [JsonPropertyName("front_default")]
-        public string FrontDefault { get; set; }
-    }
-
-
     //-----------------------------------------------------------
     public class PokemonType
     {
@@ -463,6 +425,10 @@ namespace PokemonTeamBuilder
     public class TeamSummary
     {
         public int TotalScore { get; set; }
+        public int OffensivePoints { get; set; }
+        public int DefensivePoints { get; set; }
+        public int BSTPoints { get; set; }
+        public int WeaknessPenalty { get; set; }
         public List<string> Weaknesses { get; set; } = new List<string>();
         public List<string> Strengths { get; set; } = new List<string>();
     }

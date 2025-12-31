@@ -26,23 +26,30 @@ namespace PokemonTeamBuilder
             if (IsEnabled)
             {
                 string prefix = string.IsNullOrEmpty(context) ? "" : $"[{context}] ";
-                Debug.LogException(ex, $"{prefix}Exception");
-                Debug.LogException(ex, $"StackTrace");
+                Log($"{prefix}Exception: {ex.Message}");
+                Log($"{prefix}StackTrace: {ex.StackTrace}");
             }
         }
 
         public static void LogTeamSummary(TeamSummary summary)
         {
-                Log($"Team Summary:\n" + 
-                    $"- Total Score: {summary.TotalScore}\n" + 
-                    $"- Strengths: {string.Join(", ", summary.Strengths)}\n" + 
-                    $"- Weaknesses: {string.Join(", ", summary.Weaknesses)}");
+            var message = "Team Summary:\n" +
+                          $"- Total Score: {summary.TotalScore}\n" +
+                          $"- Strengths: {string.Join(", ", summary.Strengths)}\n" +
+                          $"- Weaknesses: {string.Join(", ", summary.Weaknesses)}\n" +
+                          $"- Offensive Points: {summary.OffensivePoints}\n" +
+                          $"- Defensive Points: {summary.DefensivePoints}\n" +
+                          $"- BST Points: {summary.BSTPoints}\n" +
+                          $"- Weakness Penalty: {summary.WeaknessPenalty}";
+
+            Log(message);
         }
 
         public static void Log(string message)
         {
             if (IsEnabled)
             {
+                System.Diagnostics.Debug.WriteLine(message);
                 Console.WriteLine($"[DEBUG] {message}");
             }
         }

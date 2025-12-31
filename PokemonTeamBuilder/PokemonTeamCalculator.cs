@@ -124,7 +124,10 @@
             defensiveScore = Math.Min(defensiveScore, 300);
 
             int totalBST = teamMembers.Sum(p => p.TotalBaseStats);
-            int bstScore = (int)(Math.Min(totalBST / MaxTeamBST, 1f) * 200);
+            Debug.Log($"Total Team BST: {totalBST}, team size: {teamMembers.Count}");
+            // didnt work as int division under 4320 always gives 0 
+            int bstScore = (int)(Math.Min((float)totalBST / MaxTeamBST, 1f) * 200);
+            Debug.Log($"Relative Team BST: {bstScore}");
 
             int weaknessPenalty = 0;
             foreach (var type in allTypes)
@@ -152,6 +155,11 @@
             }
 
             weaknessPenalty = Math.Min(weaknessPenalty, 150);
+
+            summary.OffensivePoints = offensiveScore;
+            summary.DefensivePoints = defensiveScore;
+            summary.BSTPoints = bstScore;
+            summary.WeaknessPenalty = weaknessPenalty;
 
             summary.TotalScore = Math.Clamp(
                 offensiveScore + defensiveScore + bstScore - weaknessPenalty, 0, 1000
