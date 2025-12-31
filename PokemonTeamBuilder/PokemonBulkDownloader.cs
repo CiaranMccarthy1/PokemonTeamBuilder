@@ -26,17 +26,20 @@ namespace PokemonTeamBuilder
 
             if (!Directory.Exists(cacheFolder))
             {
+                Debug.Log($"Creating cache folder at {cacheFolder}");
                 Directory.CreateDirectory(cacheFolder);
             }
 
             if (!Directory.Exists(spritesFolder))
             {
+                Debug.Log($"Creating sprites folder at {spritesFolder}");
                 Directory.CreateDirectory(spritesFolder);
             }
         }
 
         public bool IsDownloadComplete()
         {
+            Debug.Log($"Checking download completion: {downloadCompleteFile}");
             return File.Exists(downloadCompleteFile);
         }
 
@@ -139,6 +142,7 @@ namespace PokemonTeamBuilder
                 await File.WriteAllTextAsync(filePath, json);
 
                 var nameFilePath = Path.Combine(cacheFolder, $"{pokemon.Name.ToLower()}.json");
+                Debug.Log($"Saving Pokemon data for {pokemon.Name}");
                 await File.WriteAllTextAsync(nameFilePath, json);
             }
             catch (Exception ex)

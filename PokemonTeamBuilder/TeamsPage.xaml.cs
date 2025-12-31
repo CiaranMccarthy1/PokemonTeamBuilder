@@ -48,7 +48,9 @@ public partial class TeamsPage : ContentPage
         {
             DisplayTeams();
         }
-        
+
+        Debug.Log($"TSelectedPokemon: {selectedPokemon}, TeamId: {pendingTeamId}");
+
 
         if (!string.IsNullOrEmpty(selectedPokemon) && pendingTeamId.HasValue)
         {
@@ -86,6 +88,7 @@ public partial class TeamsPage : ContentPage
 
         if (!Directory.Exists(teamsFolder))
         {
+            Debug.Log($"Creating teams folder at {teamsFolder}");
             Directory.CreateDirectory(teamsFolder);
         }
     }
@@ -214,6 +217,7 @@ public partial class TeamsPage : ContentPage
                 DeleteTeam(team);
                 LoadTeams();
                 DisplayTeams();
+                Debug.Log($"Deleted team {team.Name}");
             }
         };
         Grid.SetColumn(deleteButton, 1);

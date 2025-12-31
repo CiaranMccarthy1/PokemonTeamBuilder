@@ -49,7 +49,7 @@ namespace PokemonTeamBuilder
         {
             if (IsEnabled)
             {
-                System.Diagnostics.Debug.WriteLine(message);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] {message}");
                 Console.WriteLine($"[DEBUG] {message}");
             }
         }

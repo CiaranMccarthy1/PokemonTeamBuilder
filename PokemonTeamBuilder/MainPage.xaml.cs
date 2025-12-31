@@ -34,6 +34,7 @@ namespace PokemonTeamBuilder
                 {
                     teamId = null;
                 }
+                Debug.Log($"MainPage received TeamId: {teamId}");
             }
         }
 
@@ -255,6 +256,7 @@ namespace PokemonTeamBuilder
                 }
                
                 await PokemonCache.SaveFavorites(favourites);
+                Debug.Log($"{currentPokemonName} is now {pokemonFavouriteButton.Text}");
             }
             catch (Exception ex)
             {
@@ -277,6 +279,7 @@ namespace PokemonTeamBuilder
             pokemonFavouriteButton.IsVisible = false;
             pokemonAddToTeamButton.IsVisible = false;
             currentPokemonName = string.Empty;
+            Debug.Log("Cleared Pokémon display");
         }
 
         private void AllPokemonCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -292,6 +295,7 @@ namespace PokemonTeamBuilder
         protected override void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
+            Debug.Log($"MainPage size allocated: {width}x{height}");
         }
 
         public void OnBackButtonClicked(object sender, EventArgs e)
@@ -301,7 +305,6 @@ namespace PokemonTeamBuilder
             filterFrame.IsVisible = true;
             allPokemonCollectionView.IsVisible = true;
             pokemonDetailsGrid.IsVisible = false;
-            // Keep backToTeamButton visible if teamId is set (don't hide it when going back to grid)
             ClearPokemonDisplay();
         }
 

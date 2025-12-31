@@ -4,6 +4,7 @@
     {
         //TeamScore(0, 1000) = Offense(450) + Defense(300) + BaseStats(200) − WeaknessPenalty(150)
 
+        // Max team BST is 4320
         private const int MaxTeamBST = 720 * 6;
         public static TeamSummary CalculateTeamSummary(List<Pokemon> teamMembers)
         {
