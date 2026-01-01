@@ -49,6 +49,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -101,20 +103,28 @@
                 </HorizontalStackLayout>
 
                 <HorizontalStackLayout Grid.Column="4" Spacing="6" VerticalOptions="Center">
+                    <CheckBox x:Name="favouritesCheckBox" 
+                              CheckedChanged="OnFavouritesFilterChanged"
+                              VerticalOptions="Center" 
+                              Margin="5,0,-90,0"/>
+                    <Label Text="★ Favourites" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="5" Spacing="6" VerticalOptions="Center">
                     <Label Text="Min TBS:" VerticalOptions="Center" />
                     <Entry x:Name="minTbsEntry" Keyboard="Numeric" Placeholder="0" WidthRequest="55" 
                            BackgroundColor="{DynamicResource SurfaceColor}"
                            TextChanged="OnFilterChanged"/>
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="5" Spacing="6" VerticalOptions="Center">
+                <HorizontalStackLayout Grid.Column="6" Spacing="6" VerticalOptions="Center">
                     <Label Text="Max TBS:" VerticalOptions="Center" />
                     <Entry x:Name="maxTbsEntry" Keyboard="Numeric" Placeholder="999" WidthRequest="55" 
                            BackgroundColor="{DynamicResource SurfaceColor}"
                            TextChanged="OnFilterChanged"/>
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="6" Spacing="6" VerticalOptions="Center">
+                <HorizontalStackLayout Grid.Column="7" Spacing="6" VerticalOptions="Center">
                     <Label Text="Sort:" VerticalOptions="Center" />
                     <Picker x:Name="sortPicker" WidthRequest="130" 
                             BackgroundColor="{DynamicResource SurfaceColor}"
@@ -142,7 +152,7 @@
                     </Picker>
                 </HorizontalStackLayout>
 
-                <Button Grid.Column="7" Text="Clear" Clicked="OnClearFiltersClicked" 
+                <Button Grid.Column="8" Text="Clear" Clicked="OnClearFiltersClicked" 
                         BackgroundColor="{DynamicResource SecondaryColor}"
                         FontSize="12" Padding="12,8" VerticalOptions="Center" />
             </Grid>

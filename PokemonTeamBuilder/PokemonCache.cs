@@ -35,7 +35,7 @@ namespace PokemonTeamBuilder
             }
         }
 
-        public static async Task<List<PokemonIndexEntry>> GetPokemonIndexAsync()
+        public static async Task<List<PokemonIndexEntry>> GetPokemonIndex()
         {
             InitializeFolders();
             
@@ -56,11 +56,17 @@ namespace PokemonTeamBuilder
                     var index = JsonSerializer.Deserialize<List<PokemonIndexEntry>>(json);
                     if (index != null && index.Count > 0)
                     {
+                        var deduplicatedIndex = index
+                            .GroupBy(p => p.Id)
+                            .Select(g => g.First())
+                            .OrderBy(p => p.Id)
+                            .ToList();
+                        
                         lock (indexLock)
                         {
-                            pokemonIndex = index;
+                            pokemonIndex = deduplicatedIndex;
                         }
-                        return index;
+                        return deduplicatedIndex;
                     }
                 }
                 catch (Exception ex)
@@ -69,7 +75,7 @@ namespace PokemonTeamBuilder
                 }
             }
 
-            var builtIndex = await BuildPokemonIndexAsync();
+            var builtIndex = await BuildPokemonIndex();
             lock (indexLock)
             {
                 pokemonIndex = builtIndex;
@@ -77,10 +83,11 @@ namespace PokemonTeamBuilder
             return builtIndex;
         }
 
-        private static async Task<List<PokemonIndexEntry>> BuildPokemonIndexAsync()
+        private static async Task<List<PokemonIndexEntry>> BuildPokemonIndex()
         {
             InitializeFolders();
             var index = new List<PokemonIndexEntry>();
+            var seenIds = new HashSet<int>();
 
             var files = Directory.GetFiles(cacheFolder, "*.json")
                 .Where(f => !f.EndsWith("favorites.json") && !f.EndsWith("pokemon_index.json"))
@@ -94,8 +101,9 @@ namespace PokemonTeamBuilder
                 {
                     var json = await File.ReadAllTextAsync(file);
                     var pokemon = JsonSerializer.Deserialize<Pokemon>(json, options);
-                    if (pokemon != null && pokemon.Id > 0)
+                    if (pokemon != null && pokemon.Id > 0 && !seenIds.Contains(pokemon.Id))
                     {
+                        seenIds.Add(pokemon.Id);
                         index.Add(new PokemonIndexEntry
                         {
                             Id = pokemon.Id,
@@ -135,27 +143,6 @@ namespace PokemonTeamBuilder
             if (File.Exists(indexFile))
             {
                 try { File.Delete(indexFile); } catch { }
-            }
-        }
-
-        private static void InitializeFolders()
-        {
-            if (string.IsNullOrEmpty(cacheFolder))
-            {
-                cacheFolder = System.IO.Path.Combine(FileSystem.AppDataDirectory, "pokemon_cache");
-                spritesFolder = System.IO.Path.Combine(cacheFolder, "sprites");
-                favoritesFile = System.IO.Path.Combine(cacheFolder, "favorites.json");
-                indexFile = System.IO.Path.Combine(cacheFolder, "pokemon_index.json");
-
-                if (!Directory.Exists(cacheFolder))
-                {
-                    Directory.CreateDirectory(cacheFolder);
-                }
-
-                if (!Directory.Exists(spritesFolder))
-                {
-                    Directory.CreateDirectory(spritesFolder);
-                }
             }
         }
 

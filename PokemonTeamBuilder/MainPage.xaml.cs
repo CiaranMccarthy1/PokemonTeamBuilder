@@ -18,12 +18,17 @@ namespace PokemonTeamBuilder
         private int? teamId;
         private bool isSelectingPokemon = false;
         private string? pendingPokemonName;
+        private List<string> cachedFavourites = new();
 
 
         public MainPage(HttpClient httpClient)
         {
             InitializeComponent();
             pokemonService = new PokemonService(httpClient);
+            
+            generationFilterPicker.SelectedIndex = 0;
+            rarityFilterPicker.SelectedIndex = 0;
+            sortPicker.SelectedIndex = 0;
         }
 
         public string TeamId
@@ -116,20 +121,36 @@ namespace PokemonTeamBuilder
 
             try
             {
-                for (int id = 1; id <= PokemonService.PokemonLimit; id++)
+                filterPokemonList.Clear();
+                AllPokemonNames.Clear();
+                
+                var index = await PokemonCache.GetPokemonIndex();
+                
+                foreach (var entry in index)
                 {
-                    var pokemon = await PokemonCache.GetCachedPokemonById(id);
-
-                    if (pokemon != null)
+                    filterPokemonList.Add(new Pokemon
                     {
-                        filterPokemonList.Add(pokemon);
+                        Id = entry.Id,
+                        Name = entry.Name,
+                        Generation = entry.Generation,
+                        IsLegendary = entry.IsLegendary,
+                        IsMythical = entry.IsMythical,
+                        Types = entry.Types.Select(t => new PokemonTypeWrapper 
+                        { 
+                            Type = new PokemonType { Name = t } 
+                        }).ToList(),
+                        Stats = entry.Stats.Select(s => new PokemonStat 
+                        { 
+                            BaseStat = s.Value, 
+                            Stat = new StatDetail { Name = s.Key } 
+                        }).ToList()
+                    });
 
-                        AllPokemonNames.Add(new PokemonGridItem
-                        {
-                            Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
-                            PokemonId = pokemon.Id
-                        });
-                    }
+                    AllPokemonNames.Add(new PokemonGridItem
+                    {
+                        Name = PokemonFormatter.FormatPokemonName(entry.Name),
+                        PokemonId = entry.Id
+                    });
                 }
 
                 allPokemonCollectionView.ItemsSource = AllPokemonNames;
@@ -350,7 +371,6 @@ namespace PokemonTeamBuilder
                 abilitiesContainer.Children.Add(abilityFrame);
             }
         }
-
 
         private void BuildMovesList(Pokemon pokemon)
         {
@@ -681,10 +701,11 @@ namespace PokemonTeamBuilder
             bugCheckBox.IsChecked = false;
             ghostCheckBox.IsChecked = false;
             steelCheckBox.IsChecked = false;
+            favouritesCheckBox.IsChecked = false;
 
-            generationFilterPicker.SelectedIndex = -1;
-            rarityFilterPicker.SelectedIndex = -1;
-            sortPicker.SelectedIndex = -1;
+            generationFilterPicker.SelectedIndex = 0;
+            rarityFilterPicker.SelectedIndex = 0;
+            sortPicker.SelectedIndex = 0;
 
             minTbsEntry.Text = string.Empty;
             maxTbsEntry.Text = string.Empty;
@@ -692,6 +713,16 @@ namespace PokemonTeamBuilder
             typeFilterDropdown.IsVisible = false;
             typeFilterButton.Text = "Types ▼";
 
+            ApplyFilters();
+        }
+
+        private async void OnFavouritesFilterChanged(object sender, CheckedChangedEventArgs e)
+        {
+            if (e.Value)
+            {
+                var favourites = await PokemonCache.GetFavorites();
+                cachedFavourites = favourites.Distinct().ToList();
+            }
             ApplyFilters();
         }
 
@@ -737,6 +768,11 @@ namespace PokemonTeamBuilder
                     p.Types != null && 
                     selectedTypes.All(selectedType => 
                         p.Types.Any(t => t.Type.Name.ToLower() == selectedType)));
+            }
+
+            if (favouritesCheckBox.IsChecked)
+            {
+                filtered = filtered.Where(p => cachedFavourites.Contains(p.Name.ToLower()));
             }
 
             if (int.TryParse(minTbsEntry.Text, out int minTbs))
@@ -910,7 +946,7 @@ namespace PokemonTeamBuilder
                 var targetWidth = percentage * maxBarWidth;
                 barFill.Animate("FillBar",
                     new Animation(v => barFill.WidthRequest = v, 0, targetWidth),
-                    length: 300,
+                    length: 500,
                     easing: Easing.CubicOut);
             }
         }

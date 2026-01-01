@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace PokemonTeamBuilder
 {
@@ -265,7 +265,7 @@ namespace PokemonTeamBuilder
                 ["poison"] = 0.5f,
                 ["ground"] = 0.5f,
                 ["rock"] = 0.5f,
-                ["ghost"] => 0.5f,
+                ["ghost"] = 0.5f,
                 ["steel"] = 0f,
                 ["fairy"] = 2f
             },
@@ -343,9 +343,9 @@ namespace PokemonTeamBuilder
 
             ["dark"] = new()
             {
-                ["fighting"] => 0.5f,
-                ["psychic"] => 2f,
-                ["ghost"] => 2f,
+                ["fighting"] = 0.5f,
+                ["psychic"] = 2f,
+                ["ghost"] = 2f,
                 ["dark"] = 0.5f,
                 ["steel"] = 0.5f
             },
