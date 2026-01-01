@@ -19,6 +19,8 @@ namespace PokemonTeamBuilder
 
         [JsonPropertyName("stats")]
         public List<PokemonStat> Stats { get; set; }
+        [JsonPropertyName("abilities")]
+        public List<PokemonAbilityWrapper> Abilities { get; set; }
 
         [JsonIgnore]
         public bool Favourite { get; set; }
@@ -36,6 +38,24 @@ namespace PokemonTeamBuilder
                 var sum = Stats.Sum(s => s.BaseStat);
                 Debug.Log($"[TotalBaseStats] Pokemon '{Name}' (Id={Id}) stats count={Stats.Count}, sum={sum}");
                 return sum;
+            }
+        }
+
+        [JsonIgnore]
+        public string AbilitiesDisplay
+        {
+            get
+            {
+                if (Abilities == null || Abilities.Count == 0)
+                    return "None";
+
+                return string.Join(", ", Abilities
+                    .OrderBy(a => a.Slot)
+                    .Select(a =>
+                    {
+                        var name = PokemonFormatter.FormatPokemonName(a.Ability?.Name ?? "Unknown");
+                        return a.IsHidden ? $"{name} (Hidden)" : name;
+                    }));
             }
         }
     }
@@ -431,6 +451,22 @@ namespace PokemonTeamBuilder
         public int WeaknessPenalty { get; set; }
         public List<string> Weaknesses { get; set; } = new List<string>();
         public List<string> Strengths { get; set; } = new List<string>();
+    }
+
+    public class PokemonAbilityWrapper
+    {
+        public PokemonAbility Ability { get; set; }
+
+        [JsonPropertyName("is_hidden")]
+        public bool IsHidden { get; set; }
+
+        public int Slot { get; set; }
+    }
+
+    public class PokemonAbility
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
     }
 
 

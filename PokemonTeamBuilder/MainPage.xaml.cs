@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
-using System.Collections.ObjectModel; 
+using System.Collections.ObjectModel;
 
 namespace PokemonTeamBuilder
 {
@@ -47,10 +47,10 @@ namespace PokemonTeamBuilder
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            
+
 
             backToTeamButton.IsVisible = teamId.HasValue;
-            
+
 
             if (!teamId.HasValue && pokemonDetailsGrid.IsVisible)
             {
@@ -58,7 +58,7 @@ namespace PokemonTeamBuilder
                 pokemonDetailsGrid.IsVisible = false;
                 ClearPokemonDisplay();
             }
-            
+
             if (!isInitialized)
             {
                 await LoadAllPokemonForGrid();
@@ -72,7 +72,7 @@ namespace PokemonTeamBuilder
 
             teamId = null;
             backToTeamButton.IsVisible = false;
-            
+
             allPokemonCollectionView.IsVisible = true;
             pokemonDetailsGrid.IsVisible = false;
             ClearPokemonDisplay();
@@ -149,10 +149,45 @@ namespace PokemonTeamBuilder
             {
                 await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
             }
-            
+
             searchBar.Text = string.Empty;
         }
 
+        private const int MaxBaseStat = 255;
+
+
+        private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = e.NewTextValue?.ToLower() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                suggestionListView.ItemsSource = null;
+                suggestionListView.IsVisible = false;
+                return;
+            }
+
+            var suggestions = AllPokemonNames
+                              .Where(p => p.Name.ToLower().StartsWith(query))
+                              .Select(p => p.Name)
+                              .Take(10)
+                              .ToList();
+
+            suggestionListView.IsVisible = suggestions.Count > 0;
+            suggestionListView.ItemsSource = suggestions;
+        }
+
+        private void suggestionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            if (e.SelectedItem is not string selectedPokemon)
+                return;
+
+            searchBar.Text = selectedPokemon;
+            OnSearchBarPressed(null, null);
+
+            suggestionListView.SelectedItem = null;
+            suggestionListView.IsVisible = false;
+        }
         private async Task DisplayPokemon(Pokemon pokemon, bool isFavourite)
         {
             string query = pokemon.Name.ToLower();
@@ -169,7 +204,6 @@ namespace PokemonTeamBuilder
                 return;
             }
 
-            // Hide search bar, filters, and grid
             searchBarFrame.IsVisible = false;
             filterFrame.IsVisible = false;
             typeFilterDropdown.IsVisible = false;
@@ -182,12 +216,16 @@ namespace PokemonTeamBuilder
                 : "N/A";
 
             pokemonNameLabel.Text = formattedName;
-            pokemonHeightLabel.Text = $"📏 Height: {pokemon.Height / 10.0} m";
-            pokemonWeightLabel.Text = $"⚖️ Weight: {pokemon.Weight / 10.0} kg";
-            pokemonTypeLabel.Text = $"🏷️ Types: {types}";
-            pokemonStatLabel.Text = $"📊 Base Stats: {pokemon.TotalBaseStats}";
+            pokemonTypeLabel.Text = $"🏷️ {types}";
+            pokemonHeightLabel.Text = $"📏 {pokemon.Height / 10.0} m";
+            pokemonWeightLabel.Text = $"⚖{pokemon.Weight / 10.0} kg";
+            pokemonStatLabel.Text = $"Total: {pokemon.TotalBaseStats}";
             pokemonStrenghtLabel.Text = PokemonFormatter.FormatStrengths(pokemon.Strengths);
             pokemonWeaknessLabel.Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses);
+
+            BuildStatsBars(pokemon);
+
+            BuildAbilitiesList(pokemon);
 
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Favourite";
@@ -195,42 +233,183 @@ namespace PokemonTeamBuilder
             pokemonAddToTeamButton.IsVisible = teamId.HasValue;
         }
 
-
-        private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
+        private void BuildStatsBars(Pokemon pokemon)
         {
-            string query = e.NewTextValue?.ToLower() ?? string.Empty;
+            statsContainer.Children.Clear();
 
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                suggestionListView.ItemsSource = null;
-                suggestionListView.IsVisible = false;
+            if (pokemon.Stats == null || pokemon.Stats.Count == 0)
                 return;
+
+            var statNames = new Dictionary<string, string>
+            {
+                { "hp", "HP" },
+                { "attack", "Attack" },
+                { "defense", "Defense" },
+                { "special-attack", "Sp. Atk" },
+                { "special-defense", "Sp. Def" },
+                { "speed", "Speed" }
+            };
+
+            foreach (var stat in pokemon.Stats)
+            {
+                var statName = stat.Stat?.Name ?? "Unknown";
+                var displayName = statNames.TryGetValue(statName, out var name) ? name : statName;
+                var value = stat.BaseStat;
+                var percentage = Math.Min((float)value / MaxBaseStat, 1f);
+                var isAboveHalf = percentage >= 0.5f;
+
+                var statRow = new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition { Width = new GridLength(70) },
+                        new ColumnDefinition { Width = new GridLength(40) },
+                        new ColumnDefinition { Width = GridLength.Star }
+                    },
+                    ColumnSpacing = 8
+                };
+
+
+                var nameLabel = new Label
+                {
+                    Text = displayName,
+                    FontSize = 13,
+                    VerticalOptions = LayoutOptions.Center
+                };
+                Grid.SetColumn(nameLabel, 0);
+
+
+                var valueLabel = new Label
+                {
+                    Text = value.ToString(),
+                    FontSize = 13,
+                    FontAttributes = FontAttributes.Bold,
+                    HorizontalTextAlignment = TextAlignment.End,
+                    VerticalOptions = LayoutOptions.Center
+                };
+                Grid.SetColumn(valueLabel, 1);
+
+
+                var barBackground = new Frame
+                {
+                    HeightRequest = 12,
+                    CornerRadius = 6,
+                    Padding = 0,
+                    HasShadow = false,
+                    BackgroundColor = Color.FromArgb("#3A3A3A"),
+                    BorderColor = Colors.Transparent,
+                    VerticalOptions = LayoutOptions.Center
+                };
+
+
+                var barFill = new BoxView
+                {
+                    HeightRequest = 12,
+                    CornerRadius = 6,
+                    Color = isAboveHalf ? Color.FromArgb("#4CAF50") : Color.FromArgb("#F44336"),
+                    HorizontalOptions = LayoutOptions.Start,
+                    WidthRequest = 0 
+                };
+
+                var barContainer = new Grid();
+                barContainer.Children.Add(barBackground);
+                barContainer.Children.Add(barFill);
+                Grid.SetColumn(barContainer, 2);
+
+                statRow.Children.Add(nameLabel);
+                statRow.Children.Add(valueLabel);
+                statRow.Children.Add(barContainer);
+
+                statsContainer.Children.Add(statRow);
+
+
+                var targetWidth = percentage * 150; 
+                barFill.Animate("FillBar", 
+                    new Animation(v => barFill.WidthRequest = v, 0, targetWidth),
+                    length: 500,
+                    easing: Easing.CubicOut);
             }
-            
-
-
-            var suggestions = AllPokemonNames
-                              .Where(p => p.Name.ToLower().StartsWith(query))
-                              .Select(p => p.Name) 
-                              .Take(10)
-                              .ToList();
-
-
-            suggestionListView.IsVisible = suggestions.Count > 0;
-
-            suggestionListView.ItemsSource = suggestions;
         }
 
-        private void suggestionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private void BuildAbilitiesList(Pokemon pokemon)
         {
-            if (e.SelectedItem is not string selectedPokemon)
+            abilitiesContainer.Children.Clear();
+
+            if (pokemon.Abilities == null || pokemon.Abilities.Count == 0)
+            {
+                var noAbilities = new Label
+                {
+                    Text = "No abilities found",
+                    FontSize = 14,
+                    TextColor = Colors.Gray
+                };
+                abilitiesContainer.Children.Add(noAbilities);
                 return;
+            }
 
-            searchBar.Text = selectedPokemon;
-            OnSearchBarPressed(null, null);
+            foreach (var abilityWrapper in pokemon.Abilities.OrderBy(a => a.Slot))
+            {
+                var abilityName = abilityWrapper.Ability?.Name?.Replace("-", " ") ?? "Unknown";
+                var formattedName = PokemonFormatter.FormatPokemonName(abilityName);
 
-            suggestionListView.SelectedItem = null;
-            suggestionListView.IsVisible = false;
+                var abilityFrame = new Frame
+                {
+                    Padding = new Thickness(16, 12),
+                    CornerRadius = 12,
+                    HasShadow = false,
+                    BackgroundColor = abilityWrapper.IsHidden 
+                        ? Color.FromArgb("#2D2D44") 
+                        : (Color)Application.Current.Resources["CardBackgroundColor"],
+                    BorderColor = abilityWrapper.IsHidden 
+                        ? Color.FromArgb("#6B5B95") 
+                        : (Color)Application.Current.Resources["BorderColor"]
+                };
+
+                var abilityStack = new VerticalStackLayout { Spacing = 4 };
+
+                var nameRow = new HorizontalStackLayout { Spacing = 8 };
+        
+                var abilityLabel = new Label
+                {
+                    Text = formattedName,
+                    FontSize = 16,
+                    FontAttributes = FontAttributes.Bold
+                };
+                nameRow.Children.Add(abilityLabel);
+
+                if (abilityWrapper.IsHidden)
+                {
+                    var hiddenBadge = new Frame
+                    {
+                        Padding = new Thickness(6, 2),
+                        CornerRadius = 8,
+                        HasShadow = false,
+                        BackgroundColor = Color.FromArgb("#6B5B95"),
+                        BorderColor = Colors.Transparent,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+                    hiddenBadge.Content = new Label
+                    {
+                        Text = "★ Hidden",
+                        FontSize = 10,
+                        TextColor = Colors.White
+                    };
+                    nameRow.Children.Add(hiddenBadge);
+                }
+
+                abilityStack.Children.Add(nameRow);
+
+                var slotLabel = new Label
+                {
+                    Text = $"Slot {abilityWrapper.Slot}",
+                    FontSize = 12,
+                    TextColor = Colors.Gray
+                };
+                abilityStack.Children.Add(slotLabel);
+
+                abilityFrame.Content = abilityStack;
+                abilitiesContainer.Children.Add(abilityFrame);
+            }
         }
 
         private async void OnFavouriteClicked(object sender, EventArgs e)
@@ -279,6 +458,10 @@ namespace PokemonTeamBuilder
             pokemonFavouriteButton.IsVisible = false;
             pokemonAddToTeamButton.IsVisible = false;
             currentPokemonName = string.Empty;
+          
+            statsContainer.Children.Clear();
+            abilitiesContainer.Children.Clear();
+            
             Debug.Log("Cleared Pokémon display");
         }
 
@@ -300,7 +483,6 @@ namespace PokemonTeamBuilder
 
         public void OnBackButtonClicked(object sender, EventArgs e)
         {
-            // Show search bar, filters, and grid
             searchBarFrame.IsVisible = true;
             filterFrame.IsVisible = true;
             allPokemonCollectionView.IsVisible = true;
@@ -482,7 +664,6 @@ namespace PokemonTeamBuilder
                 _ => filtered
             };
 
-            // Apply sorting
             string sortOption = sortPicker.SelectedItem?.ToString() ?? "Dex # ↑";
             filtered = sortOption switch
             {
