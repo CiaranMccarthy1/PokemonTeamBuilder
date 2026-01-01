@@ -40,6 +40,35 @@ namespace PokemonTeamBuilder
                 return sum;
             }
         }
+        public int GetTotalStatsAtLevel(int level)
+        {
+            if (Stats == null || Stats.Count == 0)
+                return 0;
+
+            int total = 0;
+            foreach (var stat in Stats)
+            {
+                total += GetStatAtLevel(stat.Stat?.Name ?? "", level);
+            }
+            return total;
+        }
+        public int GetStatAtLevel(string statName, int level)
+        {
+            var stat = Stats?.FirstOrDefault(s => s.Stat?.Name == statName);
+            if (stat == null) return 0;
+
+            var baseStat = stat.BaseStat;
+
+            if (statName == "hp")
+            {
+                return (int)Math.Floor(2.0 * baseStat * level / 100.0) + level + 10;
+            }
+            else
+            {
+                return (int)Math.Floor(2.0 * baseStat * level / 100.0) + 5;
+            }
+        }
+
 
         [JsonIgnore]
         public string AbilitiesDisplay
@@ -58,6 +87,8 @@ namespace PokemonTeamBuilder
                     }));
             }
         }
+        [JsonPropertyName("moves")]
+        public List<PokemonMoveWrapper> Moves { get; set; }
     }
 
     public class PokemonSprites
@@ -234,7 +265,7 @@ namespace PokemonTeamBuilder
                 ["poison"] = 0.5f,
                 ["ground"] = 0.5f,
                 ["rock"] = 0.5f,
-                ["ghost"] = 0.5f,
+                ["ghost"] => 0.5f,
                 ["steel"] = 0f,
                 ["fairy"] = 2f
             },
@@ -312,9 +343,9 @@ namespace PokemonTeamBuilder
 
             ["dark"] = new()
             {
-                ["fighting"] = 0.5f,
-                ["psychic"] = 2f,
-                ["ghost"] = 2f,
+                ["fighting"] => 0.5f,
+                ["psychic"] => 2f,
+                ["ghost"] => 2f,
                 ["dark"] = 0.5f,
                 ["steel"] = 0.5f
             },
@@ -424,6 +455,18 @@ namespace PokemonTeamBuilder
             ?? $"{SpriteBaseUrl}{PokemonId}.png";
     }
 
+    public class PokemonIndexEntry
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Generation { get; set; }
+        public bool IsLegendary { get; set; }
+        public bool IsMythical { get; set; }
+        public int TotalBaseStats { get; set; }
+        public List<string> Types { get; set; } = new();
+        public Dictionary<string, int> Stats { get; set; } = new();
+    }
+
     public class PokemonTeam
     {
         public int Id { get; set; }
@@ -464,6 +507,35 @@ namespace PokemonTeamBuilder
     }
 
     public class PokemonAbility
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+    }
+
+    public class PokemonMoveWrapper
+    {
+        public PokemonMove Move { get; set; }
+
+        [JsonPropertyName("version_group_details")]
+        public List<MoveVersionDetail> VersionGroupDetails { get; set; }
+    }
+
+    public class PokemonMove
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+    }
+
+    public class MoveVersionDetail
+    {
+        [JsonPropertyName("level_learned_at")]
+        public int LevelLearnedAt { get; set; }
+
+        [JsonPropertyName("move_learn_method")]
+        public MoveLearnMethod MoveLearnMethod { get; set; }
+    }
+
+    public class MoveLearnMethod
     {
         public string Name { get; set; }
         public string Url { get; set; }

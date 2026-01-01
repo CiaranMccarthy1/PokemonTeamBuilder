@@ -405,7 +405,6 @@ public partial class TeamsPage : ContentPage
         spriteFrame.Content = sprite;
         Grid.SetColumn(spriteFrame, 0);
 
-        // Pokemon Details
         var detailsStack = new VerticalStackLayout
         {
             Spacing = 8,
@@ -472,16 +471,33 @@ public partial class TeamsPage : ContentPage
         weaknessLabel.SetDynamicResource(Label.TextColorProperty, "ErrorColor");
         detailsStack.Children.Add(weaknessLabel);
 
+        var buttonRow = new HorizontalStackLayout
+        {
+            Spacing = 10,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
+
+        var moreDetailsButton = new Button
+        {
+            Text = "More Details",
+            HorizontalOptions = LayoutOptions.Start
+        };
+        moreDetailsButton.SetDynamicResource(Button.BackgroundColorProperty, "PrimaryColor");
+        moreDetailsButton.TextColor = Colors.White;
+        moreDetailsButton.Clicked += async (s, e) => await OnMoreDetailsClicked(pokemon.Name);
+        buttonRow.Children.Add(moreDetailsButton);
+
         var removeButton = new Button
         {
-            Text = "Remove from Team",
-            HorizontalOptions = LayoutOptions.Start,
-            Margin = new Thickness(0, 10, 0, 0)
+            Text = "Remove",
+            HorizontalOptions = LayoutOptions.Start
         };
         removeButton.SetDynamicResource(Button.BackgroundColorProperty, "ErrorColor");
         removeButton.TextColor = Colors.White;
         removeButton.Clicked += async (s, e) => await RemovePokemonFromTeam(pokemon.Name);
-        detailsStack.Children.Add(removeButton);
+        buttonRow.Children.Add(removeButton);
+
+        detailsStack.Children.Add(buttonRow);
 
         Grid.SetColumn(detailsStack, 1);
 
@@ -489,6 +505,14 @@ public partial class TeamsPage : ContentPage
         grid.Children.Add(detailsStack);
 
         return grid;
+    }
+
+    private async Task OnMoreDetailsClicked(string pokemonName)
+    {
+        if (currentTeam == null)
+            return;
+
+        await Shell.Current.GoToAsync($"//MainPage?teamId={currentTeam.Id}&pokemonName={Uri.EscapeDataString(pokemonName)}");
     }
 
     private void OnBackToTeamsClicked(object sender, EventArgs e)

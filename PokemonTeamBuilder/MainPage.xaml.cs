@@ -5,15 +5,19 @@ using System.Collections.ObjectModel;
 namespace PokemonTeamBuilder
 {
     [QueryProperty(nameof(TeamId), "teamId")]
+    [QueryProperty(nameof(PokemonNameParam), "pokemonName")]
     public partial class MainPage : ContentPage
     {
         private readonly PokemonService pokemonService;
         private string currentPokemonName = string.Empty;
+        private Pokemon? currentDisplayedPokemon;
         public ObservableCollection<PokemonGridItem> AllPokemonNames { get; } = new();
         private List<Pokemon> filterPokemonList = new();
         private bool isInitialized = false;
         private bool isLoading = false;
         private int? teamId;
+        private bool isSelectingPokemon = false;
+        private string? pendingPokemonName;
 
 
         public MainPage(HttpClient httpClient)
@@ -35,6 +39,18 @@ namespace PokemonTeamBuilder
                     teamId = null;
                 }
                 Debug.Log($"MainPage received TeamId: {teamId}");
+            }
+        }
+
+        public string PokemonNameParam
+        {
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    pendingPokemonName = Uri.UnescapeDataString(value);
+                    Debug.Log($"MainPage received PokemonName: {pendingPokemonName}");
+                }
             }
         }
 
@@ -63,6 +79,13 @@ namespace PokemonTeamBuilder
             {
                 await LoadAllPokemonForGrid();
                 isInitialized = true;
+            }
+
+            if (!string.IsNullOrEmpty(pendingPokemonName))
+            {
+                searchBar.Text = pendingPokemonName;
+                pendingPokemonName = null; 
+                OnSearchBarPressed(null, null);
             }
         }
 
@@ -158,6 +181,9 @@ namespace PokemonTeamBuilder
 
         private void searchBar_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (isSelectingPokemon)
+                return;
+
             string query = e.NewTextValue?.ToLower() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(query))
@@ -218,117 +244,25 @@ namespace PokemonTeamBuilder
             pokemonNameLabel.Text = formattedName;
             pokemonTypeLabel.Text = $"🏷️ {types}";
             pokemonHeightLabel.Text = $"📏 {pokemon.Height / 10.0} m";
-            pokemonWeightLabel.Text = $"⚖{pokemon.Weight / 10.0} kg";
-            pokemonStatLabel.Text = $"Total: {pokemon.TotalBaseStats}";
+            pokemonWeightLabel.Text = $"⚖️ {pokemon.Weight / 10.0} kg";
             pokemonStrenghtLabel.Text = PokemonFormatter.FormatStrengths(pokemon.Strengths);
             pokemonWeaknessLabel.Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses);
 
-            BuildStatsBars(pokemon);
+            currentDisplayedPokemon = pokemon;
+            levelPicker.SelectedIndex = 4; 
+            
+
+            int defaultLevel = 50;
+            pokemonStatLabel.Text = $"📊 Total: {pokemon.GetTotalStatsAtLevel(defaultLevel)} (Lv.{defaultLevel})";
+            UpdateStatsBarsForLevel(pokemon, defaultLevel);
 
             BuildAbilitiesList(pokemon);
+            BuildMovesList(pokemon);
 
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Favourite";
             pokemonFavouriteButton.IsVisible = true;
             pokemonAddToTeamButton.IsVisible = teamId.HasValue;
-        }
-
-        private void BuildStatsBars(Pokemon pokemon)
-        {
-            statsContainer.Children.Clear();
-
-            if (pokemon.Stats == null || pokemon.Stats.Count == 0)
-                return;
-
-            var statNames = new Dictionary<string, string>
-            {
-                { "hp", "HP" },
-                { "attack", "Attack" },
-                { "defense", "Defense" },
-                { "special-attack", "Sp. Atk" },
-                { "special-defense", "Sp. Def" },
-                { "speed", "Speed" }
-            };
-
-            foreach (var stat in pokemon.Stats)
-            {
-                var statName = stat.Stat?.Name ?? "Unknown";
-                var displayName = statNames.TryGetValue(statName, out var name) ? name : statName;
-                var value = stat.BaseStat;
-                var percentage = Math.Min((float)value / MaxBaseStat, 1f);
-                var isAboveHalf = percentage >= 0.5f;
-
-                var statRow = new Grid
-                {
-                    ColumnDefinitions =
-                    {
-                        new ColumnDefinition { Width = new GridLength(70) },
-                        new ColumnDefinition { Width = new GridLength(40) },
-                        new ColumnDefinition { Width = GridLength.Star }
-                    },
-                    ColumnSpacing = 8
-                };
-
-
-                var nameLabel = new Label
-                {
-                    Text = displayName,
-                    FontSize = 13,
-                    VerticalOptions = LayoutOptions.Center
-                };
-                Grid.SetColumn(nameLabel, 0);
-
-
-                var valueLabel = new Label
-                {
-                    Text = value.ToString(),
-                    FontSize = 13,
-                    FontAttributes = FontAttributes.Bold,
-                    HorizontalTextAlignment = TextAlignment.End,
-                    VerticalOptions = LayoutOptions.Center
-                };
-                Grid.SetColumn(valueLabel, 1);
-
-
-                var barBackground = new Frame
-                {
-                    HeightRequest = 12,
-                    CornerRadius = 6,
-                    Padding = 0,
-                    HasShadow = false,
-                    BackgroundColor = Color.FromArgb("#3A3A3A"),
-                    BorderColor = Colors.Transparent,
-                    VerticalOptions = LayoutOptions.Center
-                };
-
-
-                var barFill = new BoxView
-                {
-                    HeightRequest = 12,
-                    CornerRadius = 6,
-                    Color = isAboveHalf ? Color.FromArgb("#4CAF50") : Color.FromArgb("#F44336"),
-                    HorizontalOptions = LayoutOptions.Start,
-                    WidthRequest = 0 
-                };
-
-                var barContainer = new Grid();
-                barContainer.Children.Add(barBackground);
-                barContainer.Children.Add(barFill);
-                Grid.SetColumn(barContainer, 2);
-
-                statRow.Children.Add(nameLabel);
-                statRow.Children.Add(valueLabel);
-                statRow.Children.Add(barContainer);
-
-                statsContainer.Children.Add(statRow);
-
-
-                var targetWidth = percentage * 150; 
-                barFill.Animate("FillBar", 
-                    new Animation(v => barFill.WidthRequest = v, 0, targetWidth),
-                    length: 500,
-                    easing: Easing.CubicOut);
-            }
         }
 
         private void BuildAbilitiesList(Pokemon pokemon)
@@ -341,11 +275,16 @@ namespace PokemonTeamBuilder
                 {
                     Text = "No abilities found",
                     FontSize = 14,
-                    TextColor = Colors.Gray
+                    TextColor = (Color)Application.Current!.Resources["SubTextColor"]
                 };
                 abilitiesContainer.Children.Add(noAbilities);
                 return;
             }
+
+            var cardBackgroundColor = (Color)Application.Current!.Resources["CardBackgroundColor"];
+            var borderColor = (Color)Application.Current!.Resources["BorderColor"];
+            var secondaryColor = (Color)Application.Current!.Resources["SecondaryColor"];
+            var subTextColor = (Color)Application.Current!.Resources["SubTextColor"];
 
             foreach (var abilityWrapper in pokemon.Abilities.OrderBy(a => a.Slot))
             {
@@ -358,11 +297,11 @@ namespace PokemonTeamBuilder
                     CornerRadius = 12,
                     HasShadow = false,
                     BackgroundColor = abilityWrapper.IsHidden 
-                        ? Color.FromArgb("#2D2D44") 
-                        : (Color)Application.Current.Resources["CardBackgroundColor"],
+                        ? secondaryColor.WithAlpha(0.3f)
+                        : cardBackgroundColor,
                     BorderColor = abilityWrapper.IsHidden 
-                        ? Color.FromArgb("#6B5B95") 
-                        : (Color)Application.Current.Resources["BorderColor"]
+                        ? secondaryColor
+                        : borderColor
                 };
 
                 var abilityStack = new VerticalStackLayout { Spacing = 4 };
@@ -384,7 +323,7 @@ namespace PokemonTeamBuilder
                         Padding = new Thickness(6, 2),
                         CornerRadius = 8,
                         HasShadow = false,
-                        BackgroundColor = Color.FromArgb("#6B5B95"),
+                        BackgroundColor = secondaryColor,
                         BorderColor = Colors.Transparent,
                         VerticalOptions = LayoutOptions.Center
                     };
@@ -403,13 +342,169 @@ namespace PokemonTeamBuilder
                 {
                     Text = $"Slot {abilityWrapper.Slot}",
                     FontSize = 12,
-                    TextColor = Colors.Gray
+                    TextColor = subTextColor
                 };
                 abilityStack.Children.Add(slotLabel);
 
                 abilityFrame.Content = abilityStack;
                 abilitiesContainer.Children.Add(abilityFrame);
             }
+        }
+
+
+        private void BuildMovesList(Pokemon pokemon)
+        {
+            movesContainer.Children.Clear();
+
+            if (pokemon.Moves == null || pokemon.Moves.Count == 0)
+            {
+                movesCountLabel.Text = "No moves found";
+                var noMoves = new Label
+                {
+                    Text = "No moves available",
+                    FontSize = 14,
+                    TextColor = (Color)Application.Current!.Resources["SubTextColor"]
+                };
+                movesContainer.Children.Add(noMoves);
+                return;
+            }
+
+            movesCountLabel.Text = $"{pokemon.Moves.Count} moves available";
+
+            var successColor = (Color)Application.Current!.Resources["SuccessColor"];
+            var primaryColor = (Color)Application.Current!.Resources["PrimaryColor"];
+            var warningColor = (Color)Application.Current!.Resources["WarningColor"];
+            var secondaryColor = (Color)Application.Current!.Resources["SecondaryColor"];
+
+            var levelUpMoves = new List<(string Name, int Level)>();
+            var tmMoves = new List<string>();
+            var eggMoves = new List<string>();
+            var tutorMoves = new List<string>();
+
+            foreach (var moveWrapper in pokemon.Moves)
+            {
+                var moveName = moveWrapper.Move?.Name?.Replace("-", " ") ?? "Unknown";
+                var formattedName = PokemonFormatter.FormatPokemonName(moveName);
+
+                var details = moveWrapper.VersionGroupDetails?.LastOrDefault();
+                if (details != null)
+                {
+                    var method = details.MoveLearnMethod?.Name ?? "unknown";
+                    switch (method)
+                    {
+                        case "level-up":
+                            levelUpMoves.Add((formattedName, details.LevelLearnedAt));
+                            break;
+                        case "machine":
+                            tmMoves.Add(formattedName);
+                            break;
+                        case "egg":
+                            eggMoves.Add(formattedName);
+                            break;
+                        case "tutor":
+                            tutorMoves.Add(formattedName);
+                            break;
+                        default:
+                            tmMoves.Add(formattedName); 
+                            break;
+                    }
+                }
+            }
+
+            if (levelUpMoves.Count > 0)
+            {
+                AddMoveSectionHeader("📈 Level-Up Moves", levelUpMoves.Count);
+                foreach (var move in levelUpMoves.OrderBy(m => m.Level))
+                {
+                    AddMoveItem(move.Name, $"Lv. {move.Level}", successColor);
+                }
+            }
+
+            if (tmMoves.Count > 0)
+            {
+                AddMoveSectionHeader("💿 TM/HM Moves", tmMoves.Count);
+                foreach (var move in tmMoves.OrderBy(m => m))
+                {
+                    AddMoveItem(move, "TM", primaryColor);
+                }
+            }
+
+            if (eggMoves.Count > 0)
+            {
+                AddMoveSectionHeader("🥚 Egg Moves", eggMoves.Count);
+                foreach (var move in eggMoves.OrderBy(m => m))
+                {
+                    AddMoveItem(move, "Egg", warningColor);
+                }
+            }
+
+            if (tutorMoves.Count > 0)
+            {
+                AddMoveSectionHeader("👨‍🏫 Tutor Moves", tutorMoves.Count);
+                foreach (var move in tutorMoves.OrderBy(m => m))
+                {
+                    AddMoveItem(move, "Tutor", secondaryColor);
+                }
+            }
+        }
+
+        private void AddMoveSectionHeader(string title, int count)
+        {
+            var header = new Label
+            {
+                Text = $"{title} ({count})",
+                FontSize = 14,
+                FontAttributes = FontAttributes.Bold,
+                Margin = new Thickness(0, 12, 0, 4)
+            };
+            movesContainer.Children.Add(header);
+        }
+
+        private void AddMoveItem(string moveName, string badge, Color badgeColor)
+        {
+            var frameBackgroundColor = (Color)Application.Current!.Resources["FrameBackgroundColor"];
+
+            var moveRow = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto }
+                },
+                Padding = new Thickness(8, 6),
+                BackgroundColor = frameBackgroundColor
+            };
+
+            var nameLabel = new Label
+            {
+                Text = moveName,
+                FontSize = 13,
+                VerticalOptions = LayoutOptions.Center
+            };
+            Grid.SetColumn(nameLabel, 0);
+
+            var badgeFrame = new Frame
+            {
+                Padding = new Thickness(6, 2),
+                CornerRadius = 6,
+                HasShadow = false,
+                BackgroundColor = badgeColor,
+                BorderColor = Colors.Transparent,
+                VerticalOptions = LayoutOptions.Center
+            };
+            badgeFrame.Content = new Label
+            {
+                Text = badge,
+                FontSize = 10,
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold
+            };
+            Grid.SetColumn(badgeFrame, 1);
+
+            moveRow.Children.Add(nameLabel);
+            moveRow.Children.Add(badgeFrame);
+
+            movesContainer.Children.Add(moveRow);
         }
 
         private async void OnFavouriteClicked(object sender, EventArgs e)
@@ -458,10 +553,15 @@ namespace PokemonTeamBuilder
             pokemonFavouriteButton.IsVisible = false;
             pokemonAddToTeamButton.IsVisible = false;
             currentPokemonName = string.Empty;
-          
+            currentDisplayedPokemon = null;
+
             statsContainer.Children.Clear();
             abilitiesContainer.Children.Clear();
+            movesContainer.Children.Clear();
+            movesCountLabel.Text = string.Empty;
             
+            levelPicker.SelectedIndex = -1;
+
             Debug.Log("Cleared Pokémon display");
         }
 
@@ -472,6 +572,9 @@ namespace PokemonTeamBuilder
                 searchBar.Text = selected.Name.ToLower();
                 OnSearchBarPressed(null, null);
                 allPokemonCollectionView.SelectedItem = null;
+                searchBar.Text = string.Empty;
+                allPokemonCollectionView.SelectedItem = null;
+                isSelectingPokemon = false;
             }
         }
 
@@ -696,6 +799,119 @@ namespace PokemonTeamBuilder
                     Name = PokemonFormatter.FormatPokemonName(pokemon.Name),
                     PokemonId = pokemon.Id
                 });
+            }
+        }
+
+        private void OnLevelPickerChanged(object sender, EventArgs e)
+        {
+            if (currentDisplayedPokemon == null || levelPicker.SelectedItem == null)
+                return;
+
+            if (int.TryParse(levelPicker.SelectedItem.ToString(), out int level))
+            {
+                pokemonStatLabel.Text = $"📊 Total: {currentDisplayedPokemon.GetTotalStatsAtLevel(level)} (Lv.{level})";
+                UpdateStatsBarsForLevel(currentDisplayedPokemon, level);
+            }
+        }
+        private void UpdateStatsBarsForLevel(Pokemon pokemon, int level)
+        {
+            statsContainer.Children.Clear();
+
+            if (pokemon.Stats == null || pokemon.Stats.Count == 0)
+                return;
+
+            var statNames = new Dictionary<string, string>
+            {
+                { "hp", "HP" },
+                { "attack", "Attack" },
+                { "defense", "Defense" },
+                { "special-attack", "Sp. Atk" },
+                { "special-defense", "Sp. Def" },
+                { "speed", "Speed" }
+            };
+
+
+            int maxStat = (int)(level * 4 + 10);
+            const double maxBarWidth = 100;
+
+
+            var successColor = (Color)Application.Current!.Resources["SuccessColor"];
+            var errorColor = (Color)Application.Current!.Resources["ErrorColor"];
+            var surfaceColor = (Color)Application.Current!.Resources["SurfaceColor"];
+
+            foreach (var stat in pokemon.Stats)
+            {
+                var statName = stat.Stat?.Name ?? "Unknown";
+                var displayName = statNames.TryGetValue(statName, out var name) ? name : statName;
+
+                int value = pokemon.GetStatAtLevel(statName, level);
+                var percentage = Math.Min((float)value / maxStat, 1f);
+                var isAboveHalf = percentage >= 0.5f;
+
+                var statRow = new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition { Width = new GridLength(70) },
+                        new ColumnDefinition { Width = new GridLength(45) },
+                        new ColumnDefinition { Width = new GridLength(maxBarWidth) }
+                    },
+                    ColumnSpacing = 8,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+
+                var nameLabel = new Label
+                {
+                    Text = displayName,
+                    FontSize = 13,
+                    VerticalOptions = LayoutOptions.Center
+                };
+                Grid.SetColumn(nameLabel, 0);
+
+                var valueLabel = new Label
+                {
+                    Text = value.ToString(),
+                    FontSize = 13,
+                    FontAttributes = FontAttributes.Bold,
+                    HorizontalTextAlignment = TextAlignment.End,
+                    VerticalOptions = LayoutOptions.Center
+                };
+                Grid.SetColumn(valueLabel, 1);
+
+                var barBackground = new BoxView
+                {
+                    HeightRequest = 12,
+                    CornerRadius = 6,
+                    Color = surfaceColor,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    VerticalOptions = LayoutOptions.Center
+                };
+
+                var barFill = new BoxView
+                {
+                    HeightRequest = 12,
+                    CornerRadius = 6,
+                    Color = isAboveHalf ? successColor : errorColor,
+                    HorizontalOptions = LayoutOptions.Start,
+                    WidthRequest = 0
+                };
+
+                var barContainer = new Grid();
+                barContainer.Children.Add(barBackground);
+                barContainer.Children.Add(barFill);
+                Grid.SetColumn(barContainer, 2);
+
+                statRow.Children.Add(nameLabel);
+                statRow.Children.Add(valueLabel);
+                statRow.Children.Add(barContainer);
+
+                statsContainer.Children.Add(statRow);
+
+                var targetWidth = percentage * maxBarWidth;
+                barFill.Animate("FillBar",
+                    new Animation(v => barFill.WidthRequest = v, 0, targetWidth),
+                    length: 300,
+                    easing: Easing.CubicOut);
             }
         }
     }

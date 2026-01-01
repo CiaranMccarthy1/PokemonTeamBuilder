@@ -313,7 +313,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Left Column - Sprite and Stats with Bars -->
+                <!-- Left Column-->
                 <Frame Grid.Column="0" 
                        Padding="20" 
                        CornerRadius="16" 
@@ -321,7 +321,7 @@
                        BackgroundColor="{DynamicResource SurfaceColor}"
                        BorderColor="{DynamicResource BorderColor}">
                     <ScrollView>
-                        <VerticalStackLayout Spacing="16" HorizontalOptions="Fill">
+                        <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
 
                             <Button x:Name="backButton"
                                     Text="← Back"
@@ -331,61 +331,83 @@
                                     HorizontalOptions="Start" />
 
                             <!-- Sprite -->
-                            <Frame WidthRequest="160" HeightRequest="160" CornerRadius="80" 
-                                   Padding="10" HasShadow="False"
+                            <Frame WidthRequest="140" HeightRequest="140" CornerRadius="70" 
+                                   Padding="8" HasShadow="False"
                                    BackgroundColor="{DynamicResource CardBackgroundColor}"
                                    BorderColor="{DynamicResource BorderColor}"
                                    HorizontalOptions="Center">
                                 <Image x:Name="pokemonSprite"
-                                       WidthRequest="140"
-                                       HeightRequest="140"
+                                       WidthRequest="120"
+                                       HeightRequest="120"
                                        Aspect="AspectFit"
                                        HorizontalOptions="Center" />
                             </Frame>
 
-                            <!-- Name -->
+                            <!-- Name and Type -->
                             <Label x:Name="pokemonNameLabel"
-                                   FontSize="24"
+                                   FontSize="22"
                                    FontAttributes="Bold"
                                    HorizontalOptions="Center" />
-
-                            <!-- Type -->
                             <Label x:Name="pokemonTypeLabel" 
-                                   FontSize="14" 
+                                   FontSize="13" 
                                    FontAttributes="Bold" 
                                    HorizontalOptions="Center" />
 
                             <!-- Stats Container -->
-                            <VerticalStackLayout x:Name="statsContainer" Spacing="8" Margin="0,10,0,0">
-                                <!-- Stats will be added programmatically -->
-                            </VerticalStackLayout>
+                            <VerticalStackLayout x:Name="statsContainer" Spacing="6" Margin="0,8,0,0" />
 
                             <!-- Total BST -->
                             <Label x:Name="pokemonStatLabel" 
-                                   FontSize="16" 
+                                   FontSize="14" 
                                    FontAttributes="Bold"
-                                   HorizontalOptions="Center"
-                                   Margin="0,10,0,0" />
+                                   HorizontalOptions="Center" />
+
+                            <!-- Level Picker -->
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="Level:" VerticalOptions="Center" FontSize="13" />
+                                <Picker x:Name="levelPicker" 
+                                        WidthRequest="80"
+                                        BackgroundColor="{DynamicResource SurfaceColor}"
+                                        SelectedIndexChanged="OnLevelPickerChanged">
+                                    <Picker.Items>
+                                        <x:String>1</x:String>
+                                        <x:String>5</x:String>
+                                        <x:String>10</x:String>
+                                        <x:String>25</x:String>
+                                        <x:String>50</x:String>
+                                        <x:String>75</x:String>
+                                        <x:String>100</x:String>
+                                    </Picker.Items>
+                                </Picker>
+                            </HorizontalStackLayout>
 
                             <!-- Height/Weight -->
-                            <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
-                                <Label x:Name="pokemonHeightLabel" FontSize="13" />
-                                <Label x:Name="pokemonWeightLabel" FontSize="13" />
+                            <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                                <Label x:Name="pokemonHeightLabel" FontSize="12" />
+                                <Label x:Name="pokemonWeightLabel" FontSize="12" />
                             </HorizontalStackLayout>
 
                             <!-- Strengths/Weaknesses -->
-                            <BoxView HeightRequest="1" Margin="0,8" HorizontalOptions="Fill" 
+                            <BoxView HeightRequest="1" Margin="0,6" HorizontalOptions="Fill" 
                                      Color="{DynamicResource DividerColor}" />
-                            <Label x:Name="pokemonStrenghtLabel" FontSize="12" 
+                            <Label x:Name="pokemonStrenghtLabel" FontSize="15" 
                                    TextColor="{DynamicResource SuccessColor}" />
-                            <Label x:Name="pokemonWeaknessLabel" FontSize="12" 
+                            <Label x:Name="pokemonWeaknessLabel" FontSize="15" 
                                    TextColor="{DynamicResource ErrorColor}" />
 
+                            <!-- Abilities Section -->
+                            <BoxView HeightRequest="1" Margin="0,6" HorizontalOptions="Fill" 
+                                     Color="{DynamicResource DividerColor}" />
+                            <Label Text="Abilities" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" />
+                            <VerticalStackLayout x:Name="abilitiesContainer" Spacing="8" />
+
                             <!-- Buttons -->
-                            <HorizontalStackLayout Spacing="12" Margin="0,16,0,0" HorizontalOptions="Center">
+                            <HorizontalStackLayout Spacing="12" Margin="0,12,0,0" HorizontalOptions="Center">
                                 <Button x:Name="pokemonFavouriteButton"
                                         IsVisible="False"
-                                        FontSize="14"
+                                        FontSize="12"
                                         Text="☆ Favourite"
                                         BackgroundColor="{DynamicResource TertiaryColor}"
                                         TextColor="{DynamicResource TextColor}"
@@ -393,7 +415,7 @@
 
                                 <Button x:Name="pokemonAddToTeamButton"
                                         IsVisible="False"
-                                        FontSize="14"
+                                        FontSize="12"
                                         Text="+ Add to Team"
                                         BackgroundColor="{DynamicResource AccentColor}"
                                         Clicked="OnAddTeamButtonClicked" />
@@ -403,7 +425,7 @@
                     </ScrollView>
                 </Frame>
 
-                <!-- Right Column - Abilities -->
+                <!-- Right Column-->
                 <Frame Grid.Column="1" 
                        Padding="20" 
                        CornerRadius="16" 
@@ -411,15 +433,17 @@
                        BackgroundColor="{DynamicResource SurfaceColor}"
                        BorderColor="{DynamicResource BorderColor}">
                     <ScrollView>
-                        <VerticalStackLayout Spacing="12">
-                            <Label Text="🎯 Abilities" 
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Moves" 
                                    FontSize="20" 
                                    FontAttributes="Bold" 
-                                   Margin="0,0,0,10" />
-                            
+                                   Margin="0,0,0,8" />
+                            <Label x:Name="movesCountLabel"
+                                   FontSize="20"
+                                   Margin="0,0,0,8"
+                                   Text=""/>
 
-                            <VerticalStackLayout x:Name="abilitiesContainer" Spacing="12">
-                                <!-- Abilities will be added programmatically -->
+                            <VerticalStackLayout x:Name="movesContainer" Spacing="6">
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </ScrollView>
