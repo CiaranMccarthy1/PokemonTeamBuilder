@@ -49,8 +49,7 @@ public partial class TeamsPage : ContentPage
             DisplayTeams();
         }
 
-        Debug.Log($"TSelectedPokemon: {selectedPokemon}, TeamId: {pendingTeamId}");
-
+        Debug.Log($"SelectedPokemon: {selectedPokemon}, TeamId: {pendingTeamId}");
 
         if (!string.IsNullOrEmpty(selectedPokemon) && pendingTeamId.HasValue)
         {
@@ -69,6 +68,16 @@ public partial class TeamsPage : ContentPage
             }
 
             selectedPokemon = string.Empty;
+            pendingTeamId = null;
+        }
+        else if (pendingTeamId.HasValue)
+        {
+            var team = teams.FirstOrDefault(t => t.Id == pendingTeamId.Value);
+            if (team != null)
+            {
+                currentTeam = team;
+                await LoadTeamDetail(team);
+            }
             pendingTeamId = null;
         }
         else if (currentTeam != null && teamDetailView.IsVisible)
@@ -686,9 +695,12 @@ public partial class TeamsPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        
         teamDetailView.IsVisible = false;
         teamsListView.IsVisible = true;
         currentTeam = null;
+        selectedPokemon = string.Empty;
+        pendingTeamId = null;
     }
 }
 
