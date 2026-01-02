@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PokemonTeamBuilder.PokemonCompare"
+             Title="Compare Pokémon">
+
+    <Grid Padding="16" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="8">
+            <Label Text="Compare Pokémon"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+            <Label Text="Select 2-4 Pokémon to compare their stats side-by-side"
+                   FontSize="14"
+                   TextColor="{DynamicResource SubTextColor}" />
+        </VerticalStackLayout>
+
+        <!-- Search Bar and Buttons -->
+        <Frame Grid.Row="1" Padding="16" CornerRadius="12" HasShadow="False"
+               BackgroundColor="{DynamicResource CardBackgroundColor}"
+               BorderColor="{DynamicResource BorderColor}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Frame Grid.Column="0" Padding="0" CornerRadius="20" HasShadow="False"
+                       BackgroundColor="{DynamicResource SurfaceColor}"
+                       BorderColor="{DynamicResource BorderColor}">
+                    <SearchBar x:Name="searchBar"
+                               Placeholder="Search Pokémon to add..."
+                               TextChanged="OnSearchTextChanged"
+                               SearchButtonPressed="OnAddPokemonClicked"
+                               BackgroundColor="Transparent" />
+                </Frame>
+
+                <Button Grid.Column="1" 
+                        Text="+ Add"
+                        Clicked="OnAddPokemonClicked"
+                        BackgroundColor="{DynamicResource AccentColor}"
+                        Padding="16,8" />
+
+                <Button Grid.Column="2"
+                        Text="Clear All"
+                        Clicked="OnClearAllClicked"
+                        BackgroundColor="{DynamicResource SecondaryColor}"
+                        Padding="16,8" />
+            </Grid>
+        </Frame>
+
+        <!-- Suggestions List-->
+        <Frame x:Name="suggestionsFrame" Grid.Row="2" Padding="0" CornerRadius="12" HasShadow="False"
+               IsVisible="False"
+               BackgroundColor="{DynamicResource CardBackgroundColor}"
+               BorderColor="{DynamicResource BorderColor}">
+            <ListView x:Name="suggestionListView"
+                      ItemSelected="OnSuggestionSelected"
+                      HeightRequest="150"
+                      BackgroundColor="Transparent"
+                      SeparatorColor="{DynamicResource DividerColor}" />
+        </Frame>
+
+        <!-- Comparison-->
+        <ScrollView Grid.Row="3">
+            <VerticalStackLayout Spacing="16">
+
+                <Frame Padding="16" CornerRadius="12" HasShadow="False"
+                       BackgroundColor="{DynamicResource CardBackgroundColor}"
+                       BorderColor="{DynamicResource BorderColor}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Selected Pokémon" FontSize="18" FontAttributes="Bold" />
+                        <HorizontalStackLayout x:Name="selectedPokemonContainer" 
+                                               Spacing="12" 
+                                               HorizontalOptions="Center" />
+                        <Label x:Name="selectionHintLabel"
+                               Text="Add 2-4 Pokémon to compare"
+                               FontSize="14"
+                               TextColor="{DynamicResource SubTextColor}"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame x:Name="comparisonFrame" Padding="20" CornerRadius="12" HasShadow="False"
+                       IsVisible="False"
+                       BackgroundColor="{DynamicResource CardBackgroundColor}"
+                       BorderColor="{DynamicResource BorderColor}">
+                    <VerticalStackLayout Spacing="16">
+                        <Label Text="📊 Stats Comparison" FontSize="20" FontAttributes="Bold" />
+                        <HorizontalStackLayout x:Name="legendContainer" Spacing="16" HorizontalOptions="Center" />
+                        <BoxView HeightRequest="1" Color="{DynamicResource DividerColor}" />
+                        <VerticalStackLayout x:Name="statsComparisonContainer" Spacing="20" />
+                        <BoxView HeightRequest="1" Color="{DynamicResource DividerColor}" />
+                        <VerticalStackLayout x:Name="totalStatsContainer" Spacing="8" />
+                    </VerticalStackLayout>
+                </Frame>
+                
+                <Frame x:Name="typeComparisonFrame" Padding="20" CornerRadius="12" HasShadow="False"
+                       IsVisible="False"
+                       BackgroundColor="{DynamicResource CardBackgroundColor}"
+                       BorderColor="{DynamicResource BorderColor}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="🏷️ Type Comparison" FontSize="20" FontAttributes="Bold" />
+                        <Grid x:Name="typeComparisonGrid" ColumnSpacing="16" RowSpacing="8" />
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

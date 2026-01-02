@@ -44,6 +44,15 @@
             ContentTemplate="{DataTemplate local:MainPage}"
             Route="MainPage" />
     </FlyoutItem>
+    
+    <FlyoutItem Title="Compare" 
+            Icon="chart_bar"  
+            Route="CompareRoute">
+        <ShellContent
+        Title="Compare"
+        ContentTemplate="{DataTemplate local:PokemonCompare}"
+        Route="PokemonCompare" />
+    </FlyoutItem>
 
     <FlyoutItem Title="Settings"
                 Icon="gear"

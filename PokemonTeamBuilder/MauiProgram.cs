@@ -21,6 +21,7 @@ namespace PokemonTeamBuilder
 
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<LoadingPage>();
+            builder.Services.AddTransient<PokemonCompare>();
 
 #if DEBUG
             builder.Logging.AddDebug();
