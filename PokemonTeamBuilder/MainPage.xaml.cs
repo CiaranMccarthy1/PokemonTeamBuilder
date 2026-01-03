@@ -21,7 +21,6 @@ namespace PokemonTeamBuilder
         private List<string> cachedFavourites = new();
         private bool isViewingFromTeam = false;
         private bool isNavigatingToTeam = false;
-        private bool isNavigatingFromTeam = false;
 
 
         public MainPage(HttpClient httpClient)
@@ -43,6 +42,10 @@ namespace PokemonTeamBuilder
                     teamId = id;
                     Debug.Log($"MainPage received TeamId: {teamId}");
                 }
+                else
+                {
+                    teamId = null;
+                }
             }
         }
 
@@ -55,20 +58,68 @@ namespace PokemonTeamBuilder
                     pendingPokemonName = Uri.UnescapeDataString(value);
                     Debug.Log($"MainPage received PokemonName: {pendingPokemonName}");
                 }
+                else
+                {
+                    pendingPokemonName = null;
+                }
             }
+        }
+
+
+        private void ResetToPokedexList()
+        {
+            searchBarFrame.IsVisible = true;
+            filterFrame.IsVisible = true;
+            allPokemonCollectionView.IsVisible = true;
+            pokemonDetailsGrid.IsVisible = false;
+            backToTeamButton.IsVisible = false;
+            
+            teamId = null;
+            pendingPokemonName = null;
+            isViewingFromTeam = false;
+            
+            ClearPokemonDisplay();
+            Debug.Log("Reset to Pokedex list view");
         }
 
         protected override async void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
+
+            Debug.Log($"OnNavigatedTo - TeamId: {teamId}, PendingPokemon: {pendingPokemonName}, FromFlyout: {AppShell.IsNavigatingFromFlyout}");
+
+            if (AppShell.IsNavigatingFromFlyout)
+            {
+                Debug.Log("Flyout navigation detected - resetting to grid view");
+                AppShell.IsNavigatingFromFlyout = false; 
+                
+                teamId = null;
+                pendingPokemonName = null;
+                isViewingFromTeam = false;
+                searchBarFrame.IsVisible = true;
+                filterFrame.IsVisible = true;
+                allPokemonCollectionView.IsVisible = true;
+                pokemonDetailsGrid.IsVisible = false;
+                backToTeamButton.IsVisible = false;
+
+                ClearPokemonDisplay();
+
+                if (!isInitialized)
+                {
+                    await LoadAllPokemonForGrid();
+                    isInitialized = true;
+                }
+                return; 
+            }
+            
             if (teamId.HasValue && !string.IsNullOrEmpty(pendingPokemonName))
             {
                 isViewingFromTeam = true;
                 backToTeamButton.IsVisible = true;
-                
+
                 string pokemonToShow = pendingPokemonName;
                 pendingPokemonName = null;
-                
+
                 try
                 {
                     Pokemon? pokemon = await PokemonCache.GetCachedPokemon(pokemonToShow.ToLower());
@@ -82,18 +133,33 @@ namespace PokemonTeamBuilder
                 {
                     Debug.LogException(ex, "Failed to load Pokemon from navigation");
                 }
-                
+
                 if (!isInitialized)
                 {
-                    _ = LoadAllPokemonForGrid().ContinueWith(_ => isInitialized = true);
+                    await LoadAllPokemonForGrid();
+                    isInitialized = true;
                 }
             }
             else
             {
-                backToTeamButton.IsVisible = false;
+                Debug.Log("resetting to grid view");
+
                 teamId = null;
                 pendingPokemonName = null;
                 isViewingFromTeam = false;
+                searchBarFrame.IsVisible = true;
+                filterFrame.IsVisible = true;
+                allPokemonCollectionView.IsVisible = true;
+                pokemonDetailsGrid.IsVisible = false;
+                backToTeamButton.IsVisible = false;
+
+                ClearPokemonDisplay();
+
+                if (!isInitialized)
+                {
+                    await LoadAllPokemonForGrid();
+                    isInitialized = true;
+                }
             }
         }
 
@@ -101,30 +167,12 @@ namespace PokemonTeamBuilder
         {
             base.OnAppearing();
 
-            if (!isNavigatingFromTeam)
-            {
-                pokemonDetailsGrid.IsVisible = false;
-            }
-
-            backToTeamButton.IsVisible = teamId.HasValue;
-            
-            if (!teamId.HasValue && pokemonDetailsGrid.IsVisible)
-            {
-                isViewingFromTeam = false;
-                searchBarFrame.IsVisible = true;
-                filterFrame.IsVisible = true;
-                allPokemonCollectionView.IsVisible = true;
-                pokemonDetailsGrid.IsVisible = false;
-                ClearPokemonDisplay();
-            }
-
             if (!isInitialized)
             {
                 await LoadAllPokemonForGrid();
                 isInitialized = true;
             }
         }
-
         protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
         {
             base.OnNavigatedFrom(args);
@@ -132,25 +180,26 @@ namespace PokemonTeamBuilder
             if (!isNavigatingToTeam)
             {
                 teamId = null;
-                backToTeamButton.IsVisible = false;
+                pendingPokemonName = null;
                 isViewingFromTeam = false;
-
-                allPokemonCollectionView.IsVisible = true;
-                pokemonDetailsGrid.IsVisible = false;
-                ClearPokemonDisplay();
+                ResetToPokedexList();
             }
             
             isNavigatingToTeam = false;
+            Debug.Log($"Leaving Pokedex - {teamId} - {pendingPokemonName}");
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
+            
             pokemonSprite.Source = null;
-            pendingPokemonName = null;
-            isNavigatingFromTeam = false;
-            isViewingFromTeam = false;
-            teamId = null;
+            if (!isNavigatingToTeam)
+            {
+                teamId = null;
+                pendingPokemonName = null;
+                isViewingFromTeam = false;
+            }
         }
 
         private async Task LoadAllPokemonForGrid()
@@ -203,7 +252,7 @@ namespace PokemonTeamBuilder
             finally
             {
                 isLoading = false;
-            }
+                    }
         }
 
         private async void OnSearchBarPressed(object? sender, EventArgs? e)
@@ -652,12 +701,18 @@ namespace PokemonTeamBuilder
                 int savedTeamId = teamId.Value;
                 isNavigatingToTeam = true;
                 teamId = null;
+                pendingPokemonName = null;
                 backToTeamButton.IsVisible = false;
                 isViewingFromTeam = false;
+
                 await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={savedTeamId}");
             }
             else
             {
+                teamId = null;
+                pendingPokemonName = null;
+                isViewingFromTeam = false;
+
                 searchBarFrame.IsVisible = true;
                 filterFrame.IsVisible = true;
                 allPokemonCollectionView.IsVisible = true;
@@ -673,8 +728,10 @@ namespace PokemonTeamBuilder
                 int savedTeamId = teamId.Value;
                 isNavigatingToTeam = true;
                 teamId = null;
+                pendingPokemonName = null;
                 backToTeamButton.IsVisible = false;
                 isViewingFromTeam = false;
+
                 await Shell.Current.GoToAsync($"//TeamsRoute/TeamsPage?teamId={savedTeamId}");
             }
         }
