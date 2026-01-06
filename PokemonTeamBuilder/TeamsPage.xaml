@@ -79,12 +79,24 @@
               IsVisible="False"
               BackgroundColor="{DynamicResource PageBackgroundColor}"
               RowSpacing="16"
-              Padding="20"
-              RowDefinitions="Auto,*" 
-              ColumnDefinitions="1.2*,*">
+              Padding="20">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="{OnIdiom Phone=Auto, Default=0}" />
+             </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{OnIdiom Phone=*, Default=1.2*}" />
+                <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
+            </Grid.ColumnDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+            <Grid Grid.Row="0" 
+                  Grid.ColumnSpan="2" 
+                  ColumnDefinitions="Auto,*,Auto" 
+                  Margin="0,0,0,10">
                 <Button Grid.Column="0"
                         Text="← Back"
                         BackgroundColor="{DynamicResource SecondaryColor}"
@@ -113,7 +125,8 @@
             </ScrollView>
 
             <!-- Team Summary Panel -->
-            <Frame Grid.Row="1" Grid.Column="1" 
+            <Frame Grid.Row="{OnIdiom Phone=2, Default=1}" 
+                   Grid.Column="{OnIdiom Phone=0, Default=1}"
                    Padding="20" 
                    CornerRadius="16"
                    BackgroundColor="{DynamicResource CardBackgroundColor}"

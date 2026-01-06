@@ -153,8 +153,10 @@
                 </HorizontalStackLayout>
 
                 <Button Grid.Column="8" Text="Clear" Clicked="OnClearFiltersClicked" 
+                        WidthRequest="130"
                         BackgroundColor="{DynamicResource SecondaryColor}"
-                        FontSize="12" Padding="12,8" VerticalOptions="Center" />
+                        FontSize="12" Padding="12,8" VerticalOptions="Center"/>
+                
             </Grid>
         </Frame>
 
@@ -317,19 +319,28 @@
                HorizontalOptions="Fill"
                VerticalOptions="Fill">
 
-            <Grid ColumnSpacing="24">
+            <Grid ColumnSpacing="{OnIdiom Phone=0, Default=24}" 
+                  RowSpacing="{OnIdiom Phone=24, Default=0}">
+                
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
                 </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="{OnIdiom Phone=0, Default=*}" />
+                </Grid.RowDefinitions>
 
                 <!-- Left Column-->
                 <Frame Grid.Column="0" 
+                       Grid.Row="0"
                        Padding="20" 
                        CornerRadius="16" 
                        HasShadow="False"
                        BackgroundColor="{DynamicResource SurfaceColor}"
                        BorderColor="{DynamicResource BorderColor}">
+                    
                     <ScrollView>
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
 
@@ -436,7 +447,8 @@
                 </Frame>
 
                 <!-- Right Column-->
-                <Frame Grid.Column="1" 
+                <Frame Grid.Column="{OnIdiom Phone=0, Default=1}" 
+                       Grid.Row="{OnIdiom Phone=1, Default=0}"
                        Padding="20" 
                        CornerRadius="16" 
                        HasShadow="False"

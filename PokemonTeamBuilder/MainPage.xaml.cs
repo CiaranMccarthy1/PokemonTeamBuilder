@@ -140,6 +140,25 @@ namespace PokemonTeamBuilder
                     isInitialized = true;
                 }
             }
+            else if (teamId.HasValue){
+                Debug.Log($"Searching for team member. TeamId: {teamId}");
+
+                backToTeamButton.IsVisible = true; 
+                isViewingFromTeam = true;   
+
+                searchBarFrame.IsVisible = true;
+                filterFrame.IsVisible = true;
+                allPokemonCollectionView.IsVisible = true;
+                pokemonDetailsGrid.IsVisible = false;
+
+                ClearPokemonDisplay();
+
+                if (!isInitialized)
+                {
+                    await LoadAllPokemonForGrid();
+                    isInitialized = true;
+                }
+            }
             else
             {
                 Debug.Log("resetting to grid view");
