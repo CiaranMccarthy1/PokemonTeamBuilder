@@ -373,7 +373,7 @@ namespace PokemonTeamBuilder
             currentPokemonName = pokemon.Name.ToLower();
             pokemonFavouriteButton.Text = isFavourite ? "★ Favourite" : "☆ Favourite";
             pokemonFavouriteButton.IsVisible = true;
-            pokemonAddToTeamButton.IsVisible = teamId.HasValue && !isViewingFromTeam;
+            pokemonAddToTeamButton.IsVisible = teamId.HasValue;
         }
 
         private void BuildAbilitiesList(Pokemon pokemon)
