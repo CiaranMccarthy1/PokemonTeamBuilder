@@ -21,6 +21,7 @@ namespace PokemonTeamBuilder
         private List<string> cachedFavourites = new();
         private bool isViewingFromTeam = false;
         private bool isNavigatingToTeam = false;
+        private bool isShowingShiny = false;
 
 
         public MainPage(HttpClient httpClient)
@@ -31,6 +32,14 @@ namespace PokemonTeamBuilder
             generationFilterPicker.SelectedIndex = 0;
             rarityFilterPicker.SelectedIndex = 0;
             sortPicker.SelectedIndex = 0;
+            
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += OnSpriteTapped;
+            pokemonSprite.GestureRecognizers.Add(tapGesture);
+            
+            var gridLayout = (GridItemsLayout)allPokemonCollectionView.ItemsLayout;
+            gridLayout.Span = DeviceInfo.Idiom == DeviceIdiom.Phone ? 2 : 
+                             DeviceInfo.Idiom == DeviceIdiom.Tablet ? 3 : 4;
         }
 
         public string TeamId
@@ -347,6 +356,7 @@ namespace PokemonTeamBuilder
         private async Task DisplayPokemon(Pokemon pokemon, bool isFavourite)
         {
             string query = pokemon.Name.ToLower();
+            isShowingShiny = false;
 
             var cachedSpritePath = PokemonCache.GetCachedSprite(query);
             if (!string.IsNullOrEmpty(cachedSpritePath))
@@ -713,8 +723,40 @@ namespace PokemonTeamBuilder
             Debug.Log($"MainPage size allocated: {width}x{height}");
         }
 
+        private void OnSpriteTapped(object sender, EventArgs e)
+        {
+            if (currentDisplayedPokemon == null)
+                return;
+
+            isShowingShiny = !isShowingShiny;
+
+            string query = currentDisplayedPokemon.Name.ToLower();
+            string spritePath;
+
+            if (isShowingShiny)
+            {
+                spritePath = PokemonCache.GetCachedShinySprite(query);
+                if (string.IsNullOrEmpty(spritePath))
+                {
+                    isShowingShiny = false;
+                    spritePath = PokemonCache.GetCachedSprite(query);
+                }
+            }
+            else
+            {
+                spritePath = PokemonCache.GetCachedSprite(query);
+            }
+
+            if (!string.IsNullOrEmpty(spritePath))
+            {
+                pokemonSprite.Source = spritePath;
+            }
+        }
+
         public async void OnBackButtonClicked(object sender, EventArgs e)
         {
+            isShowingShiny = false;
+            
             if (teamId.HasValue)
             {
                 int savedTeamId = teamId.Value;

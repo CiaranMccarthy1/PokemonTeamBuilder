@@ -38,127 +38,131 @@
                       HorizontalOptions="Fill" />
         </Frame>
 
-        <Frame x:Name="filterFrame" Grid.Row="2" Padding="12,8" CornerRadius="12" HasShadow="False"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <!-- Filter Bar-->
+        <ScrollView Grid.Row="2" Orientation="Horizontal" 
+                    HorizontalScrollBarVisibility="{OnIdiom Phone=Always, Default=Never}">
+            <Frame x:Name="filterFrame" Padding="12,8" CornerRadius="12" HasShadow="False"
+                   BackgroundColor="{DynamicResource CardBackgroundColor}"
+                   BorderColor="{DynamicResource BorderColor}"
+                   MinimumWidthRequest="{OnIdiom Phone=0, Default=0}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <Button x:Name="backToTeamButton" Grid.Column="0"
-                        Text="← Back to Team"
-                        IsVisible="False"
-                        BackgroundColor="{DynamicResource SecondaryColor}"
-                        FontSize="12" Padding="12,8" VerticalOptions="Center"
-                        Clicked="OnBackToTeamClicked" />
+                    <Button x:Name="backToTeamButton" Grid.Column="0"
+                            Text="← Back to Team"
+                            IsVisible="False"
+                            BackgroundColor="{DynamicResource SecondaryColor}"
+                            FontSize="12" Padding="12,8" VerticalOptions="Center"
+                            Clicked="OnBackToTeamClicked" />
 
-                <Button x:Name="typeFilterButton" Grid.Column="1" Text="Types ▼" 
-                        Clicked="OnTypeFilterButtonClicked"
-                        BackgroundColor="{DynamicResource SurfaceColor}"
-                        TextColor="{DynamicResource TextColor}"
-                        FontSize="12" Padding="12,8" VerticalOptions="Center" />
-
-                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Gen:" VerticalOptions="Center" />
-                    <Picker x:Name="generationFilterPicker" WidthRequest="90" 
+                    <Button x:Name="typeFilterButton" Grid.Column="1" Text="Types ▼" 
+                            Clicked="OnTypeFilterButtonClicked"
                             BackgroundColor="{DynamicResource SurfaceColor}"
-                            SelectedIndexChanged="OnFilterChanged">
-                        <Picker.Items>
-                            <x:String>All</x:String>
-                            <x:String>Gen 1</x:String>
-                            <x:String>Gen 2</x:String>
-                            <x:String>Gen 3</x:String>
-                            <x:String>Gen 4</x:String>
-                            <x:String>Gen 5</x:String>
-                            <x:String>Gen 6</x:String>
-                            <x:String>Gen 7</x:String>
-                            <x:String>Gen 8</x:String>
-                            <x:String>Gen 9</x:String>
-                        </Picker.Items>
-                    </Picker>
-                </HorizontalStackLayout>
+                            TextColor="{DynamicResource TextColor}"
+                            FontSize="12" Padding="12,8" VerticalOptions="Center" />
 
-                <HorizontalStackLayout Grid.Column="3" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Rarity:" VerticalOptions="Center" />
-                    <Picker x:Name="rarityFilterPicker" WidthRequest="110" 
-                            BackgroundColor="{DynamicResource SurfaceColor}"
-                            SelectedIndexChanged="OnFilterChanged">
-                        <Picker.Items>
-                            <x:String>All</x:String>
-                            <x:String>Legendary</x:String>
-                            <x:String>Mythical</x:String>
-                            <x:String>Regular</x:String>
-                        </Picker.Items>
-                    </Picker>
-                </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Gen:" VerticalOptions="Center" />
+                        <Picker x:Name="generationFilterPicker" WidthRequest="90" 
+                                BackgroundColor="{DynamicResource SurfaceColor}"
+                                SelectedIndexChanged="OnFilterChanged">
+                            <Picker.Items>
+                                <x:String>All</x:String>
+                                <x:String>Gen 1</x:String>
+                                <x:String>Gen 2</x:String>
+                                <x:String>Gen 3</x:String>
+                                <x:String>Gen 4</x:String>
+                                <x:String>Gen 5</x:String>
+                                <x:String>Gen 6</x:String>
+                                <x:String>Gen 7</x:String>
+                                <x:String>Gen 8</x:String>
+                                <x:String>Gen 9</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="4" Spacing="6" VerticalOptions="Center">
-                    <CheckBox x:Name="favouritesCheckBox" 
-                              CheckedChanged="OnFavouritesFilterChanged"
-                              VerticalOptions="Center" 
-                              Margin="5,0,-90,0"/>
-                    <Label Text="★ Favourites" VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Column="3" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Rarity:" VerticalOptions="Center" />
+                        <Picker x:Name="rarityFilterPicker" WidthRequest="110" 
+                                BackgroundColor="{DynamicResource SurfaceColor}"
+                                SelectedIndexChanged="OnFilterChanged">
+                            <Picker.Items>
+                                <x:String>All</x:String>
+                                <x:String>Legendary</x:String>
+                                <x:String>Mythical</x:String>
+                                <x:String>Regular</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="5" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Min TBS:" VerticalOptions="Center" />
-                    <Entry x:Name="minTbsEntry" Keyboard="Numeric" Placeholder="0" WidthRequest="55" 
-                           BackgroundColor="{DynamicResource SurfaceColor}"
-                           TextChanged="OnFilterChanged"/>
-                </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Column="4" Spacing="6" VerticalOptions="Center">
+                        <CheckBox x:Name="favouritesCheckBox" 
+                                  CheckedChanged="OnFavouritesFilterChanged"
+                                  VerticalOptions="Center" />
+                        <Label Text="★ Favourites" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="6" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Max TBS:" VerticalOptions="Center" />
-                    <Entry x:Name="maxTbsEntry" Keyboard="Numeric" Placeholder="999" WidthRequest="55" 
-                           BackgroundColor="{DynamicResource SurfaceColor}"
-                           TextChanged="OnFilterChanged"/>
-                </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Column="5" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Min TBS:" VerticalOptions="Center" />
+                        <Entry x:Name="minTbsEntry" Keyboard="Numeric" Placeholder="0" WidthRequest="55" 
+                               BackgroundColor="{DynamicResource SurfaceColor}"
+                               TextChanged="OnFilterChanged"/>
+                    </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Column="7" Spacing="6" VerticalOptions="Center">
-                    <Label Text="Sort:" VerticalOptions="Center" />
-                    <Picker x:Name="sortPicker" WidthRequest="130" 
-                            BackgroundColor="{DynamicResource SurfaceColor}"
-                            SelectedIndexChanged="OnSortChanged">
-                        <Picker.Items>
-                            <x:String>Dex # ↑</x:String>
-                            <x:String>Dex # ↓</x:String>
-                            <x:String>A-Z</x:String>
-                            <x:String>Z-A</x:String>
-                            <x:String>BST ↑</x:String>
-                            <x:String>BST ↓</x:String>
-                            <x:String>HP ↑</x:String>
-                            <x:String>HP ↓</x:String>
-                            <x:String>Attack ↑</x:String>
-                            <x:String>Attack ↓</x:String>
-                            <x:String>Defense ↑</x:String>
-                            <x:String>Defense ↓</x:String>
-                            <x:String>Sp. Atk ↑</x:String>
-                            <x:String>Sp. Atk ↓</x:String>
-                            <x:String>Sp. Def ↑</x:String>
-                            <x:String>Sp. Def ↓</x:String>
-                            <x:String>Speed ↑</x:String>
-                            <x:String>Speed ↓</x:String>
-                        </Picker.Items>
-                    </Picker>
-                </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Column="6" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Max TBS:" VerticalOptions="Center" />
+                        <Entry x:Name="maxTbsEntry" Keyboard="Numeric" Placeholder="999" WidthRequest="55" 
+                               BackgroundColor="{DynamicResource SurfaceColor}"
+                               TextChanged="OnFilterChanged"/>
+                    </HorizontalStackLayout>
 
-                <Button Grid.Column="8" Text="Clear" Clicked="OnClearFiltersClicked" 
-                        WidthRequest="130"
-                        BackgroundColor="{DynamicResource SecondaryColor}"
-                        FontSize="12" Padding="12,8" VerticalOptions="Center"/>
-                
-            </Grid>
-        </Frame>
+                    <HorizontalStackLayout Grid.Column="7" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Sort:" VerticalOptions="Center" />
+                        <Picker x:Name="sortPicker" WidthRequest="130" 
+                                BackgroundColor="{DynamicResource SurfaceColor}"
+                                SelectedIndexChanged="OnSortChanged">
+                            <Picker.Items>
+                                <x:String>Dex # ↑</x:String>
+                                <x:String>Dex # ↓</x:String>
+                                <x:String>A-Z</x:String>
+                                <x:String>Z-A</x:String>
+                                <x:String>BST ↑</x:String>
+                                <x:String>BST ↓</x:String>
+                                <x:String>HP ↑</x:String>
+                                <x:String>HP ↓</x:String>
+                                <x:String>Attack ↑</x:String>
+                                <x:String>Attack ↓</x:String>
+                                <x:String>Defense ↑</x:String>
+                                <x:String>Defense ↓</x:String>
+                                <x:String>Sp. Atk ↑</x:String>
+                                <x:String>Sp. Atk ↓</x:String>
+                                <x:String>Sp. Def ↑</x:String>
+                                <x:String>Sp. Def ↓</x:String>
+                                <x:String>Speed ↑</x:String>
+                                <x:String>Speed ↓</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </HorizontalStackLayout>
+
+                    <Button Grid.Column="8" Text="Clear" Clicked="OnClearFiltersClicked" 
+                            WidthRequest="130"
+                            BackgroundColor="{DynamicResource SecondaryColor}"
+                            FontSize="12" Padding="12,8" VerticalOptions="Center"/>
+                    
+                </Grid>
+            </Frame>
+        </ScrollView>
 
         <Frame x:Name="typeFilterDropdown" Grid.Row="3" Padding="12" CornerRadius="12" HasShadow="False"
                IsVisible="False"
@@ -171,95 +175,101 @@
                             BackgroundColor="{DynamicResource AccentColor}"
                             FontSize="12" Padding="8,4" Margin="12,0,0,0" />
                 </HorizontalStackLayout>
-                <Grid ColumnSpacing="0" RowSpacing="4">
+                <Grid ColumnSpacing="8" RowSpacing="8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="{OnIdiom Phone='*', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='*', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='*', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
+                        <ColumnDefinition Width="{OnIdiom Phone='0', Default='Auto'}" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="{OnIdiom Phone='Auto', Default='0'}" />
+                        <RowDefinition Height="{OnIdiom Phone='Auto', Default='0'}" />
+                        <RowDefinition Height="{OnIdiom Phone='Auto', Default='0'}" />
+                        <RowDefinition Height="{OnIdiom Phone='Auto', Default='0'}" />
                     </Grid.RowDefinitions>
                     
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="0" VerticalOptions="Center">
+                    <!-- Row 0 -->
+                    <HorizontalStackLayout Grid.Row="0" Grid.Column="0" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="fireCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Fire" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Fire" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=0, Default=0}" Grid.Column="{OnIdiom Phone=1, Default=1}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="waterCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Water" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Water" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="2" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=0, Default=0}" Grid.Column="{OnIdiom Phone=2, Default=2}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="grassCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Grass" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Grass" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=1, Default=0}" Grid.Column="{OnIdiom Phone=0, Default=3}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="electricCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Electric" VerticalOptions="Center" Margin="-90,0,5,0" />
+                        <Label Text="Electric" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="4" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=1, Default=0}" Grid.Column="{OnIdiom Phone=1, Default=4}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="psychicCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Psychic" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Psychic" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="5" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=1, Default=0}" Grid.Column="{OnIdiom Phone=2, Default=5}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="iceCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Ice" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Ice" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="6" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=2, Default=0}" Grid.Column="{OnIdiom Phone=0, Default=6}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="dragonCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Dragon" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Dragon" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="7" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=2, Default=0}" Grid.Column="{OnIdiom Phone=1, Default=7}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="darkCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Dark" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Dark" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="0" Grid.Column="8" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=2, Default=0}" Grid.Column="{OnIdiom Phone=2, Default=8}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="fairyCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Fairy" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Fairy" VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="0" VerticalOptions="Center">
+                    <!-- Row 1 (Desktop) / Row 3-5 (Mobile) -->
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=3, Default=1}" Grid.Column="0" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="normalCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Normal" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Normal" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="1" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=3, Default=1}" Grid.Column="{OnIdiom Phone=1, Default=1}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="fightingCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Fighting" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Fighting" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="2" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=3, Default=1}" Grid.Column="{OnIdiom Phone=2, Default=2}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="flyingCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Flying" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Flying" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="3" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=4, Default=1}" Grid.Column="{OnIdiom Phone=0, Default=3}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="poisonCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Poison" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Poison" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="4" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=4, Default=1}" Grid.Column="{OnIdiom Phone=1, Default=4}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="groundCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Ground" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Ground" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="5" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=4, Default=1}" Grid.Column="{OnIdiom Phone=2, Default=5}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="rockCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Rock" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Rock" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="6" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=5, Default=1}" Grid.Column="{OnIdiom Phone=0, Default=6}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="bugCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Bug" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Bug" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="7" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=5, Default=1}" Grid.Column="{OnIdiom Phone=1, Default=7}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="ghostCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Ghost" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Ghost" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Grid.Row="1" Grid.Column="8" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Row="{OnIdiom Phone=5, Default=1}" Grid.Column="{OnIdiom Phone=2, Default=8}" VerticalOptions="Center" Spacing="4">
                         <CheckBox x:Name="steelCheckBox" CheckedChanged="OnTypeFilterChanged" />
-                        <Label Text="Steel" VerticalOptions="Center" Margin="-90,0,5,0"/>
+                        <Label Text="Steel" VerticalOptions="Center" />
                     </HorizontalStackLayout>
                 </Grid>
             </VerticalStackLayout>
@@ -323,13 +333,13 @@
                   RowSpacing="{OnIdiom Phone=24, Default=0}">
                 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="{OnIdiom Phone=*, Default=*}" />
                     <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="{OnIdiom Phone=0, Default=*}" />
+                    <RowDefinition Height="{OnIdiom Phone=*, Default=*}" />
+                    <RowDefinition Height="{OnIdiom Phone=*, Default=0}" />
                 </Grid.RowDefinitions>
 
                 <!-- Left Column-->
