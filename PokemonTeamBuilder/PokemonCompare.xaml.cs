@@ -219,15 +219,14 @@ public partial class PokemonCompare : ContentPage
         removeButton.Clicked += (s, e) => RemovePokemon(pokemonToRemove);
         removeButton.SetDynamicResource(Button.BackgroundColorProperty, "ErrorColor");
 
-        var spriteFrame = new Frame
+        var spriteFrame = new Border
         {
             WidthRequest = 70,
             HeightRequest = 70,
-            CornerRadius = 35,
+            StrokeShape = new RoundRectangle { CornerRadius = 35 },
             Padding = 5,
-            HasShadow = false,
             BackgroundColor = accentColor.WithAlpha(0.2f),
-            BorderColor = accentColor,
+            Stroke = accentColor, 
             HorizontalOptions = LayoutOptions.Center
         };
 

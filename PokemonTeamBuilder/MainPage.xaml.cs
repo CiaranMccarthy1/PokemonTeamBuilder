@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace PokemonTeamBuilder
 {
@@ -522,17 +523,12 @@ namespace PokemonTeamBuilder
                 var abilityName = abilityWrapper.Ability?.Name?.Replace("-", " ") ?? "Unknown";
                 var formattedName = PokemonFormatter.FormatPokemonName(abilityName);
 
-                var abilityFrame = new Frame
+                var abilityFrame = new Border
                 {
                     Padding = new Thickness(16, 12),
-                    CornerRadius = 12,
-                    HasShadow = false,
-                    BackgroundColor = abilityWrapper.IsHidden 
-                        ? secondaryColor.WithAlpha(0.3f)
-                        : cardBackgroundColor,
-                    BorderColor = abilityWrapper.IsHidden 
-                        ? secondaryColor
-                        : borderColor
+                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                    BackgroundColor = abilityWrapper.IsHidden ? secondaryColor.WithAlpha(0.3f) : cardBackgroundColor,
+                    Stroke = abilityWrapper.IsHidden ? secondaryColor : borderColor
                 };
 
                 var abilityStack = new VerticalStackLayout { Spacing = 4 };
@@ -549,13 +545,12 @@ namespace PokemonTeamBuilder
 
                 if (abilityWrapper.IsHidden)
                 {
-                    var hiddenBadge = new Frame
+                    var hiddenBadge = new Border
                     {
                         Padding = new Thickness(6, 2),
-                        CornerRadius = 8,
-                        HasShadow = false,
+                        StrokeShape = new RoundRectangle { CornerRadius = 8 },
                         BackgroundColor = secondaryColor,
-                        BorderColor = Colors.Transparent,
+                        Stroke = Colors.Transparent,
                         VerticalOptions = LayoutOptions.Center
                     };
                     hiddenBadge.Content = new Label
@@ -713,13 +708,12 @@ namespace PokemonTeamBuilder
             };
             Grid.SetColumn(nameLabel, 0);
 
-            var badgeFrame = new Frame
+            var badgeFrame = new Border
             {
                 Padding = new Thickness(6, 2),
-                CornerRadius = 6,
-                HasShadow = false,
+                StrokeShape = new RoundRectangle { CornerRadius = 6 },
                 BackgroundColor = badgeColor,
-                BorderColor = Colors.Transparent,
+                Stroke = Colors.Transparent,
                 VerticalOptions = LayoutOptions.Center
             };
             badgeFrame.Content = new Label

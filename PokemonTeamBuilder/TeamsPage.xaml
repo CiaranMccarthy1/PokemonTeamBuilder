@@ -103,16 +103,18 @@
                 </VerticalStackLayout>
             </ScrollView>
 
-            <Frame x:Name="desktopSummaryFrame"
-                   Grid.Row="1" 
-                   Grid.Column="1" 
-                   IsVisible="{OnIdiom Phone=False, Default=True}"
-                   Padding="20" 
-                   CornerRadius="16"
-                   BackgroundColor="{DynamicResource CardBackgroundColor}"
-                   BorderColor="{DynamicResource BorderColor}"
-                   HasShadow="False"
-                   VerticalOptions="Fill">
+            <Border x:Name="desktopSummaryFrame"
+                    Grid.Row="1" 
+                    Grid.Column="1" 
+                    IsVisible="{OnIdiom Phone=False, Default=True}"
+                    Padding="20" 
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource BorderColor}"
+                    VerticalOptions="Fill"> 
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
 
                 <VerticalStackLayout x:Name="teamSummaryPanel" Spacing="16">
                     <Label Text="📊 Team Analysis" FontSize="22" FontAttributes="Bold"/>
@@ -128,7 +130,7 @@
                         <Label x:Name="teamWeaknessesLabel" Text="N/A" FontSize="13"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
             <VerticalStackLayout Grid.Row="1" Grid.Column="0" x:Name="emptyTeamMessage" IsVisible="False" VerticalOptions="Center" HorizontalOptions="Center" Spacing="12">
                 <Label Text="🎮" FontSize="48" HorizontalOptions="Center" />

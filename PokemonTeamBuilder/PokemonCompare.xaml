@@ -22,10 +22,11 @@
                    TextColor="{DynamicResource SubTextColor}" />
         </VerticalStackLayout>
 
-        <!-- Search Bar and Buttons -->
-        <Frame Grid.Row="1" Padding="16" CornerRadius="12" HasShadow="False"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
+        <Border Grid.Row="1" Padding="16" BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
+
             <Grid ColumnSpacing="12" RowSpacing="{OnIdiom Phone=12, Default=0}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -37,19 +38,18 @@
                     <RowDefinition Height="{OnIdiom Phone=Auto, Default=0}" />
                 </Grid.RowDefinitions>
 
-                <!-- SearchBar takes full width on mobile -->
-                <Frame Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="{OnIdiom Phone=3, Default=1}" 
-                       Padding="0" CornerRadius="20" HasShadow="False"
-                       BackgroundColor="{DynamicResource SurfaceColor}"
-                       BorderColor="{DynamicResource BorderColor}">
+                <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="{OnIdiom Phone=3, Default=1}" 
+                        Padding="0" BackgroundColor="{DynamicResource SurfaceColor}" Stroke="{DynamicResource BorderColor}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
                     <SearchBar x:Name="searchBar"
                                Placeholder="Search Pokémon to add..."
                                TextChanged="OnSearchTextChanged"
                                SearchButtonPressed="OnAddPokemonClicked"
                                BackgroundColor="Transparent" />
-                </Frame>
+                </Border>
 
-                <!-- Buttons stack on second row on mobile, side by side on desktop -->
                 <Button Grid.Row="{OnIdiom Phone=1, Default=0}" 
                         Grid.Column="{OnIdiom Phone=0, Default=1}"
                         Grid.ColumnSpan="{OnIdiom Phone=1, Default=1}"
@@ -68,30 +68,29 @@
                         HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                         Padding="16,8" />
             </Grid>
-        </Frame>
+        </Border>
 
-        <!-- Suggestions List-->
-        <Frame x:Name="suggestionsFrame" Grid.Row="2" Padding="0" CornerRadius="12" HasShadow="False"
-               IsVisible="False"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
+        <Border x:Name="suggestionsFrame" Grid.Row="2" Padding="0" IsVisible="False"
+                BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
             <ListView x:Name="suggestionListView"
                       ItemSelected="OnSuggestionSelected"
                       HeightRequest="150"
                       BackgroundColor="Transparent"
                       SeparatorColor="{DynamicResource DividerColor}" />
-        </Frame>
+        </Border>
 
-        <!-- Comparison-->
         <ScrollView Grid.Row="3">
             <VerticalStackLayout Spacing="16">
 
-                <Frame Padding="16" CornerRadius="12" HasShadow="False"
-                       BackgroundColor="{DynamicResource CardBackgroundColor}"
-                       BorderColor="{DynamicResource BorderColor}">
+                <Border Padding="16" BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius ="12" />
+                    </Border.StrokeShape>
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Selected Pokémon" FontSize="18" FontAttributes="Bold" />
-                        <!-- Wrap in ScrollView for horizontal scrolling on mobile -->
                         <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
                             <HorizontalStackLayout x:Name="selectedPokemonContainer" 
                                                    Spacing="12" 
@@ -103,12 +102,13 @@
                                TextColor="{DynamicResource SubTextColor}"
                                HorizontalOptions="Center" />
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame x:Name="comparisonFrame" Padding="20" CornerRadius="12" HasShadow="False"
-                       IsVisible="False"
-                       BackgroundColor="{DynamicResource CardBackgroundColor}"
-                       BorderColor="{DynamicResource BorderColor}">
+                <Border x:Name="comparisonFrame" Padding="20" IsVisible="False"
+                        BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
                     <VerticalStackLayout Spacing="16">
                         <Label Text="📊 Stats Comparison" FontSize="20" FontAttributes="Bold" />
                         <HorizontalStackLayout x:Name="legendContainer" Spacing="16" HorizontalOptions="Center" />
@@ -117,17 +117,18 @@
                         <BoxView HeightRequest="1" Color="{DynamicResource DividerColor}" />
                         <VerticalStackLayout x:Name="totalStatsContainer" Spacing="8" />
                     </VerticalStackLayout>
-                </Frame>
-                
-                <Frame x:Name="typeComparisonFrame" Padding="20" CornerRadius="12" HasShadow="False"
-                       IsVisible="False"
-                       BackgroundColor="{DynamicResource CardBackgroundColor}"
-                       BorderColor="{DynamicResource BorderColor}">
+                </Border>
+
+                <Border x:Name="typeComparisonFrame" Padding="20" IsVisible="False"
+                        BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
                     <VerticalStackLayout Spacing="12">
                         <Label Text="🏷️ Type Comparison" FontSize="20" FontAttributes="Bold" />
                         <Grid x:Name="typeComparisonGrid" ColumnSpacing="16" RowSpacing="8" />
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
             </VerticalStackLayout>
         </ScrollView>

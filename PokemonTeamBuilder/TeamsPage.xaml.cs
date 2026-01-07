@@ -399,15 +399,14 @@ public partial class TeamsPage : ContentPage
 
     private View CreateMobileSummaryCard(TeamSummary summary)
     {
-        var frame = new Microsoft.Maui.Controls.Frame
+        var frame = new Border
         {
             Padding = 20,
-            CornerRadius = 16,
-            HasShadow = false,
+            StrokeShape = new RoundRectangle { CornerRadius = 16 },
             Margin = new Thickness(0, 10, 0, 30)
         };
-        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "CardBackgroundColor");
-        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
+        frame.SetDynamicResource(Border.BackgroundColorProperty, "CardBackgroundColor");
+        frame.SetDynamicResource(Border.StrokeProperty, "BorderColor");
 
         var stack = new VerticalStackLayout { Spacing = 12 };
 
@@ -443,16 +442,14 @@ public partial class TeamsPage : ContentPage
 
     private View CreateTeamMemberView(Pokemon pokemon)
     {
-        var frame = new Microsoft.Maui.Controls.Frame
+        var frame = new Border
         {
             Padding = 20,
-            CornerRadius = 16,
-            HasShadow = false,
-            Margin = new Thickness(0, 0, 0, 12)
+            StrokeShape = new RoundRectangle { CornerRadius = 16 },
+            Margin = new Thickness(0, 10, 0, 30)
         };
-        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "CardBackgroundColor");
-        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
-
+        frame.SetDynamicResource(Border.BackgroundColorProperty, "CardBackgroundColor");
+        frame.SetDynamicResource(Border.StrokeProperty, "BorderColor");
         var grid = new Grid
         {
             ColumnSpacing = 20,
@@ -472,18 +469,17 @@ public partial class TeamsPage : ContentPage
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         }
 
-        var spriteFrame = new Microsoft.Maui.Controls.Frame
+        var spriteFrame = new Border
         {
             WidthRequest = 160,
             HeightRequest = 160,
-            CornerRadius = 80,
+            StrokeShape = new RoundRectangle { CornerRadius = 80 },
             Padding = 10,
-            HasShadow = false,
             HorizontalOptions = LayoutOptions.Center,
             VerticalOptions = LayoutOptions.Center
         };
-        spriteFrame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "SurfaceColor");
-        spriteFrame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
+        spriteFrame.SetDynamicResource(Border.BackgroundColorProperty, "SurfaceColor");
+        spriteFrame.SetDynamicResource(Border.StrokeProperty, "BorderColor");
 
         var sprite = new Image
         {

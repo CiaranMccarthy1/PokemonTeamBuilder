@@ -14,21 +14,22 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Frame x:Name="searchBarFrame" Grid.Row="0" Padding="0" CornerRadius="25" HasShadow="False"
-               BackgroundColor="{DynamicResource FrameBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
+        <Border x:Name="searchBarFrame" Grid.Row="0" Padding="0" BackgroundColor="{DynamicResource FrameBackgroundColor}" Stroke="{DynamicResource BorderColor}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="25" />
+            </Border.StrokeShape>
             <SearchBar x:Name="searchBar"
                        Placeholder="Search Pokémon..."
                        TextChanged="searchBar_TextChanged"
                        SearchButtonPressed="OnSearchBarPressed"
                        BackgroundColor="Transparent"
                        HorizontalOptions="Fill" />
-        </Frame>
+        </Border>
 
-        <Frame Grid.Row="1" Padding="0" CornerRadius="12" HasShadow="False"
-               IsVisible="{Binding Source={x:Reference suggestionListView}, Path=IsVisible}"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
+        <Border Grid.Row="1" Padding="0" BackgroundColor="{DynamicResource CardBackgroundColor}" Stroke="{DynamicResource BorderColor}" IsVisible="{Binding Source={x:Reference suggestionListView}, Path=IsVisible}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
             <ListView x:Name="suggestionListView"
                       ItemSelected="suggestionListView_ItemSelected"
                       HeightRequest="150"
@@ -36,15 +37,17 @@
                       BackgroundColor="Transparent"
                       SeparatorColor="{DynamicResource DividerColor}"
                       HorizontalOptions="Fill" />
-        </Frame>
+        </Border>
 
         <!-- Filter Bar-->
         <ScrollView Grid.Row="2" Orientation="Horizontal" 
                     HorizontalScrollBarVisibility="{OnIdiom Phone=Always, Default=Never}">
-            <Frame x:Name="filterFrame" Padding="12,8" CornerRadius="12" HasShadow="False"
-                   BackgroundColor="{DynamicResource CardBackgroundColor}"
-                   BorderColor="{DynamicResource BorderColor}"
-                   MinimumWidthRequest="{OnIdiom Phone=0, Default=0}">
+            <Border x:Name="filterFrame" Grid.Row="2" Padding="12,8" 
+                    BackgroundColor="{DynamicResource CardBackgroundColor}" 
+                    Stroke="{DynamicResource BorderColor}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -161,13 +164,16 @@
                             FontSize="12" Padding="12,8" VerticalOptions="Center"/>
                     
                 </Grid>
-            </Frame>
+            </Border>
         </ScrollView>
 
-        <Frame x:Name="typeFilterDropdown" Grid.Row="3" Padding="12" CornerRadius="12" HasShadow="False"
-               IsVisible="False"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}">
+        <Border x:Name="typeFilterDropdown" Grid.Row="3" Padding="12" 
+                BackgroundColor="{DynamicResource CardBackgroundColor}" 
+                Stroke="{DynamicResource BorderColor}" 
+                IsVisible="False">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
             <VerticalStackLayout Spacing="8">
                 <HorizontalStackLayout>
                     <Label Text="Select Types:" FontAttributes="Bold" VerticalOptions="Center" />
@@ -273,7 +279,7 @@
                     </HorizontalStackLayout>
                 </Grid>
             </VerticalStackLayout>
-        </Frame>
+        </Border>
 
         <!-- Pokemon Grid -->
         <CollectionView x:Name="allPokemonCollectionView"
@@ -293,60 +299,67 @@
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Padding="{OnIdiom Phone=6, Default=8}" 
-                           CornerRadius="16" 
-                           HasShadow="False"
-                           BackgroundColor="{DynamicResource CardBackgroundColor}"
-                           BorderColor="{DynamicResource BorderColor}"
-                           Margin="0">
+                    <Border Padding="{OnIdiom Phone=6, Default=8}" 
+                        BackgroundColor="{DynamicResource CardBackgroundColor}"
+                        Stroke="{DynamicResource BorderColor}"
+                        Margin="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
                         <VerticalStackLayout HorizontalOptions="Center" 
-                                           Spacing="4"
-                                           Padding="0">
-                            <Frame WidthRequest="{OnIdiom Phone=60, Default=70}" 
-                                   HeightRequest="{OnIdiom Phone=60, Default=70}" 
-                                   CornerRadius="{OnIdiom Phone=30, Default=35}" 
-                                   Padding="5" 
-                                   HasShadow="False"
-                                   BackgroundColor="{DynamicResource SurfaceColor}"
-                                   BorderColor="Transparent">
+                            Spacing="4"
+                            Padding="0">
+
+                            <Border WidthRequest="{OnIdiom Phone=60, Default=70}" 
+                                HeightRequest="{OnIdiom Phone=60, Default=70}" 
+                                Padding="5" 
+                                BackgroundColor="{DynamicResource SurfaceColor}"
+                                Stroke="Transparent">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{OnIdiom Phone=30, Default=35}" />
+                                </Border.StrokeShape>
+
                                 <Image Source="{Binding SpriteUrl}"
-                                       WidthRequest="{OnIdiom Phone=50, Default=60}"
-                                       HeightRequest="{OnIdiom Phone=50, Default=60}"
-                                       Aspect="AspectFit" />
-                            </Frame>
-                            <Label Text="{Binding Name}"
-                                   FontSize="{OnIdiom Phone=10, Default=11}"
-                                   FontAttributes="Bold"
-                                   HorizontalOptions="Center"
-                                   HorizontalTextAlignment="Center"
-                                   LineBreakMode="TailTruncation"
-                                   MaxLines="1"
-                                   Margin="0"/>
-                        </VerticalStackLayout>
-                    </Frame>
+                                    WidthRequest="{OnIdiom Phone=50, Default=60}"
+                                    HeightRequest="{OnIdiom Phone=50, Default=60}"
+                                    Aspect="AspectFit" />
+                            </Border>
+
+                                    <Label Text="{Binding Name}"
+                            FontSize="{OnIdiom Phone=10, Default=11}"
+                            FontAttributes="Bold"
+                            HorizontalOptions="Center"
+                            HorizontalTextAlignment="Center"
+                            LineBreakMode="TailTruncation"
+                            MaxLines="1"
+                            Margin="0"/>
+                        </VerticalStackLayout>  
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
 
         </CollectionView>
-        
-        <!-- Pokemon Details Grid -->
-        <Frame x:Name="pokemonDetailsGrid" 
-               Grid.Row="0" 
-               Grid.RowSpan="5"
-               Padding="24"
-               CornerRadius="20"
-               IsVisible="False"
-               BackgroundColor="{DynamicResource CardBackgroundColor}"
-               BorderColor="{DynamicResource BorderColor}"
-               HasShadow="False"
-               HorizontalOptions="Fill"
-               VerticalOptions="Fill">
 
-            <ScrollView Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="{OnIdiom Phone=1, Default=2}">
+        <Border x:Name="pokemonDetailsGrid"
+                Grid.Row="0" 
+                Grid.RowSpan="5"
+                Padding="24"
+                IsVisible="False"
+                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                Stroke="{DynamicResource BorderColor}"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill">
+
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="20" />
+            </Border.StrokeShape>
+
+            <ScrollView>
                 <Grid ColumnSpacing="{OnIdiom Phone=0, Default=24}" 
                       RowSpacing="{OnIdiom Phone=16, Default=0}"
                       Padding="0,0,0,20">
-                    
+
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{OnIdiom Phone=*, Default=*}" />
                         <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
@@ -357,15 +370,16 @@
                         <RowDefinition Height="{OnIdiom Phone=Auto, Default=0}" />
                     </Grid.RowDefinitions>
 
-                    <!-- Left Column / Top on Mobile -->
-                    <Frame Grid.Column="0" 
-                           Grid.Row="0"
-                           Padding="20" 
-                           CornerRadius="16" 
-                           HasShadow="False"
-                           BackgroundColor="{DynamicResource SurfaceColor}"
-                           BorderColor="{DynamicResource BorderColor}">
-                        
+                    <Border Grid.Column="0" 
+                            Grid.Row="0"
+                            Padding="20" 
+                            BackgroundColor="{DynamicResource SurfaceColor}"
+                            Stroke="{DynamicResource BorderColor}">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
 
                             <Button x:Name="backButton"
@@ -375,20 +389,21 @@
                                     BackgroundColor="{DynamicResource SecondaryColor}"
                                     HorizontalOptions="Start" />
 
-                            <!-- Sprite -->
-                            <Frame WidthRequest="140" HeightRequest="140" CornerRadius="70" 
-                                   Padding="8" HasShadow="False"
-                                   BackgroundColor="{DynamicResource CardBackgroundColor}"
-                                   BorderColor="{DynamicResource BorderColor}"
-                                   HorizontalOptions="Center">
+                            <Border WidthRequest="140" HeightRequest="140" 
+                                    Padding="8"
+                                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                                    Stroke="{DynamicResource BorderColor}"
+                                    HorizontalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="70" />
+                                </Border.StrokeShape>
                                 <Image x:Name="pokemonSprite"
                                        WidthRequest="120"
                                        HeightRequest="120"
                                        Aspect="AspectFit"
                                        HorizontalOptions="Center" />
-                            </Frame>
+                            </Border>
 
-                            <!-- Name and Type -->
                             <Label x:Name="pokemonNameLabel"
                                    FontSize="22"
                                    FontAttributes="Bold"
@@ -398,16 +413,13 @@
                                    FontAttributes="Bold" 
                                    HorizontalOptions="Center" />
 
-                            <!-- Stats Container -->
                             <VerticalStackLayout x:Name="statsContainer" Spacing="6" Margin="0,8,0,0" />
 
-                            <!-- Total BST -->
                             <Label x:Name="pokemonStatLabel" 
                                    FontSize="14" 
                                    FontAttributes="Bold"
                                    HorizontalOptions="Center" />
 
-                            <!-- Level Picker -->
                             <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
                                 <Label Text="Level:" VerticalOptions="Center" FontSize="13" />
                                 <Picker x:Name="levelPicker" 
@@ -426,13 +438,11 @@
                                 </Picker>
                             </HorizontalStackLayout>
 
-                            <!-- Height/Weight -->
                             <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
                                 <Label x:Name="pokemonHeightLabel" FontSize="12" />
                                 <Label x:Name="pokemonWeightLabel" FontSize="12" />
                             </HorizontalStackLayout>
 
-                            <!-- Strengths/Weaknesses -->
                             <BoxView HeightRequest="1" Margin="0,6" HorizontalOptions="Fill" 
                                      Color="{DynamicResource DividerColor}" />
                             <Label x:Name="pokemonStrenghtLabel" FontSize="15" 
@@ -440,7 +450,6 @@
                             <Label x:Name="pokemonWeaknessLabel" FontSize="15" 
                                    TextColor="{DynamicResource ErrorColor}" />
 
-                            <!-- Abilities Section -->
                             <BoxView HeightRequest="1" Margin="0,6" HorizontalOptions="Fill" 
                                      Color="{DynamicResource DividerColor}" />
                             <Label Text="Abilities" 
@@ -448,7 +457,6 @@
                                    FontAttributes="Bold" />
                             <VerticalStackLayout x:Name="abilitiesContainer" Spacing="8" />
 
-                            <!-- Buttons -->
                             <HorizontalStackLayout Spacing="12" Margin="0,12,0,0" HorizontalOptions="Center">
                                 <Button x:Name="pokemonFavouriteButton"
                                         IsVisible="False"
@@ -465,18 +473,19 @@
                                         BackgroundColor="{DynamicResource AccentColor}"
                                         Clicked="OnAddTeamButtonClicked" />
                             </HorizontalStackLayout>
-
                         </VerticalStackLayout>
-                    </Frame>
+                    </Border>
 
-                    <!-- Right Column / Bottom on Mobile -->
-                    <Frame Grid.Column="{OnIdiom Phone=0, Default=1}" 
-                           Grid.Row="{OnIdiom Phone=1, Default=0}"
-                           Padding="20" 
-                           CornerRadius="16" 
-                           HasShadow="False"
-                           BackgroundColor="{DynamicResource SurfaceColor}"
-                           BorderColor="{DynamicResource BorderColor}">
+                    <Border Grid.Column="{OnIdiom Phone=0, Default=1}" 
+                            Grid.Row="{OnIdiom Phone=1, Default=0}"
+                            Padding="20" 
+                            BackgroundColor="{DynamicResource SurfaceColor}"
+                            Stroke="{DynamicResource BorderColor}">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Moves" 
                                    FontSize="20" 
@@ -490,10 +499,10 @@
                             <VerticalStackLayout x:Name="movesContainer" Spacing="6">
                             </VerticalStackLayout>
                         </VerticalStackLayout>
-                    </Frame>
+                    </Border>
                 </Grid>
             </ScrollView>
-        </Frame>
+        </Border>
     </Grid>
 
 </ContentPage>
