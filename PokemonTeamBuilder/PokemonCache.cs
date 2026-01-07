@@ -132,20 +132,6 @@ namespace PokemonTeamBuilder
             return index;
         }
 
-        public static void InvalidateIndex()
-        {
-            lock (indexLock)
-            {
-                pokemonIndex = null;
-            }
-            
-            InitializeFolders();
-            if (File.Exists(indexFile))
-            {
-                try { File.Delete(indexFile); } catch { }
-            }
-        }
-
         public static async Task<List<string>> GetFavorites()
         {
             InitializeFolders();

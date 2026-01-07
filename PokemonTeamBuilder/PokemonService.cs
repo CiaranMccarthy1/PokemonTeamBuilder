@@ -83,20 +83,6 @@ namespace PokemonTeamBuilder
                 Debug.LogException(ex, $"Failed to fetch species data for {pokemon.Name}");
             }
         }
-
-        public async Task<List<PokemonListItem>> GetAllPokemonNames(int limit = 50, int offset = 0)
-        {
-            string url = $"{BaseUrl}pokemon?limit={limit}&offset={offset}";
-            var response = await httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-                return new List<PokemonListItem>();
-
-            var json = await response.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<PokemonListResponse>(json, JsonOptions);
-
-            return data?.Results ?? new List<PokemonListItem>();
-        }
     }
 }
 
@@ -117,16 +103,6 @@ public class GenerationReference
     public string Url { get; set; } = string.Empty;
 }
 
-public class PokemonListResponse
-{
-    public List<PokemonListItem> Results { get; set; } = new();
-}
-
-public class PokemonListItem
-{
-    public string Name { get; set; } = string.Empty;
-    public string Url { get; set; } = string.Empty;
-}
 
 
 

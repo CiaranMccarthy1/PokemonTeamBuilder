@@ -98,38 +98,6 @@ namespace PokemonTeamBuilder
         
         [JsonPropertyName("front_shiny")]
         public string FrontShiny { get; set; }
-        
-        public SpritesVersions Versions { get; set; }
-    }
-
-    public class SpritesVersions
-    {
-        [JsonPropertyName("generation-i")]
-        public GenerationI GenerationI { get; set; }
-
-        [JsonPropertyName("generation-ii")]
-        public GenerationI GenerationII { get; set; }
-
-        [JsonPropertyName("generation-iii")]
-        public GenerationI GenerationIIII { get; set; }
-
-        [JsonPropertyName("generation-iv")]
-        public GenerationI GenerationIV { get; set; }
-
-        [JsonPropertyName("generation-v")]
-        public GenerationI GenerationV { get; set; }
-    }
-
-    public class GenerationI
-    {
-        [JsonPropertyName("red-blue")]
-        public RedBlueSprites RedBlue { get; set; }
-    }
-
-    public class RedBlueSprites
-    {
-        [JsonPropertyName("front_default")]
-        public string FrontDefault { get; set; }
     }
 
     public class PokemonTypeWrapper
