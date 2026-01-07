@@ -431,7 +431,6 @@ public partial class TeamsPage : ContentPage
 
     private View CreateTeamMemberView(Pokemon pokemon)
     {
-        // Wrap in Frame for consistent styling with team summary
         var frame = new Microsoft.Maui.Controls.Frame
         {
             Padding = 20,
@@ -444,11 +443,22 @@ public partial class TeamsPage : ContentPage
 
         var grid = new Grid
         {
-            ColumnSpacing = 20
+            ColumnSpacing = 20,
+            RowSpacing = 16
         };
 
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180, GridUnitType.Absolute) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+        if (DeviceInfo.Idiom == DeviceIdiom.Phone)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
+        else
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180, GridUnitType.Absolute) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        }
 
         var spriteFrame = new Microsoft.Maui.Controls.Frame
         {
@@ -471,7 +481,6 @@ public partial class TeamsPage : ContentPage
             Aspect = Aspect.AspectFit
         };
         
-        // Add tap gesture to toggle shiny
         bool isShowingShiny = false;
         var tapGesture = new TapGestureRecognizer();
         tapGesture.Tapped += (s, e) =>
@@ -485,7 +494,6 @@ public partial class TeamsPage : ContentPage
                 spritePath = PokemonCache.GetCachedShinySprite(pokemonName);
                 if (string.IsNullOrEmpty(spritePath))
                 {
-                    // Fallback to normal sprite if shiny not available
                     isShowingShiny = false;
                     spritePath = PokemonCache.GetCachedSprite(pokemonName);
                 }
@@ -503,6 +511,8 @@ public partial class TeamsPage : ContentPage
         sprite.GestureRecognizers.Add(tapGesture);
         
         spriteFrame.Content = sprite;
+        
+        Grid.SetRow(spriteFrame, 0);
         Grid.SetColumn(spriteFrame, 0);
 
         var detailsStack = new VerticalStackLayout
@@ -515,20 +525,23 @@ public partial class TeamsPage : ContentPage
         {
             Text = PokemonFormatter.FormatPokemonName(pokemon.Name),
             FontSize = 20,
-            FontAttributes = FontAttributes.Bold
+            FontAttributes = FontAttributes.Bold,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         };
         detailsStack.Children.Add(nameLabel);
 
         detailsStack.Children.Add(new Label
         {
             Text = $"Height: {pokemon.Height / 10.0} M",
-            FontSize = 14
+            FontSize = 14,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         });
 
         detailsStack.Children.Add(new Label
         {
             Text = $"Weight: {pokemon.Weight / 10.0} KG",
-            FontSize = 14
+            FontSize = 14,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         });
 
         string types = pokemon.Types != null
@@ -538,13 +551,15 @@ public partial class TeamsPage : ContentPage
         {
             Text = $"Types: {types}",
             FontSize = 14,
-            FontAttributes = FontAttributes.Bold
+            FontAttributes = FontAttributes.Bold,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         });
 
         detailsStack.Children.Add(new Label
         {
             Text = $"Base Stat Total: {pokemon.TotalBaseStats}",
-            FontSize = 14
+            FontSize = 14,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         });
 
         var divider = new BoxView
@@ -558,7 +573,8 @@ public partial class TeamsPage : ContentPage
         var strengthLabel = new Label
         {
             Text = PokemonFormatter.FormatStrengths(pokemon.Strengths),
-            FontSize = 14
+            FontSize = 14,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         };
         strengthLabel.SetDynamicResource(Label.TextColorProperty, "SuccessColor");
         detailsStack.Children.Add(strengthLabel);
@@ -566,7 +582,8 @@ public partial class TeamsPage : ContentPage
         var weaknessLabel = new Label
         {
             Text = PokemonFormatter.FormatWeaknesses(pokemon.Weaknesses),
-            FontSize = 14
+            FontSize = 14,
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         };
         weaknessLabel.SetDynamicResource(Label.TextColorProperty, "ErrorColor");
         detailsStack.Children.Add(weaknessLabel);
@@ -574,13 +591,14 @@ public partial class TeamsPage : ContentPage
         var buttonRow = new HorizontalStackLayout
         {
             Spacing = 10,
-            Margin = new Thickness(0, 10, 0, 0)
+            Margin = new Thickness(0, 10, 0, 0),
+            HorizontalOptions = DeviceInfo.Idiom == DeviceIdiom.Phone ? LayoutOptions.Center : LayoutOptions.Start
         };
 
         var moreDetailsButton = new Button
         {
             Text = "More Details",
-            HorizontalOptions = LayoutOptions.Start
+            HorizontalOptions = LayoutOptions.Center
         };
         moreDetailsButton.SetDynamicResource(Button.BackgroundColorProperty, "PrimaryColor");
         moreDetailsButton.TextColor = Colors.White;
@@ -590,7 +608,7 @@ public partial class TeamsPage : ContentPage
         var removeButton = new Button
         {
             Text = "Remove",
-            HorizontalOptions = LayoutOptions.Start
+            HorizontalOptions = LayoutOptions.Center
         };
         removeButton.SetDynamicResource(Button.BackgroundColorProperty, "ErrorColor");
         removeButton.TextColor = Colors.White;
@@ -599,7 +617,16 @@ public partial class TeamsPage : ContentPage
 
         detailsStack.Children.Add(buttonRow);
 
-        Grid.SetColumn(detailsStack, 1);
+        if (DeviceInfo.Idiom == DeviceIdiom.Phone)
+        {
+            Grid.SetRow(detailsStack, 1);
+            Grid.SetColumn(detailsStack, 0);
+        }
+        else
+        {
+            Grid.SetRow(detailsStack, 0);
+            Grid.SetColumn(detailsStack, 1);
+        }
 
         grid.Children.Add(spriteFrame);
         grid.Children.Add(detailsStack);
