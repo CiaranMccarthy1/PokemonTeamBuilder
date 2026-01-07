@@ -329,10 +329,8 @@ public partial class TeamsPage : ContentPage
         try
         {
             currentTeam = team;
-
             teamsListView.IsVisible = false;
             teamDetailView.IsVisible = true;
-
             teamNameLabel.Text = team.Name;
 
             teamMembersContainer.Children.Clear();
@@ -340,6 +338,7 @@ public partial class TeamsPage : ContentPage
             if (team.Pokemon == null || team.Pokemon.Count == 0)
             {
                 emptyTeamMessage.IsVisible = true;
+                desktopSummaryFrame.IsVisible = false; // Hide summary if empty
 
                 totalScoreLabel.Text = "Total Score: N/A";
                 teamWeaknessesLabel.Text = "Team Weaknesses: N/A";
@@ -349,6 +348,8 @@ public partial class TeamsPage : ContentPage
             }
 
             emptyTeamMessage.IsVisible = false;
+            // Only show desktop frame if NOT on phone
+            desktopSummaryFrame.IsVisible = DeviceInfo.Idiom != DeviceIdiom.Phone;
 
             var fullTeamMembers = new List<Pokemon>();
 
@@ -365,17 +366,70 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
+            // Calculate Stats
             var summary = PokemonTeamCalculator.CalculateTeamSummary(fullTeamMembers);
 
+            // Update Standard (Desktop) Labels
             totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
-            teamWeaknessesLabel.Text = $"Team Weaknesses: {string.Join(", ", summary.Weaknesses)}";
-            teamStrengthsLabel.Text = $"Team Strengths: {string.Join(", ", summary.Strengths)}";
+            teamWeaknessesLabel.Text = string.IsNullOrEmpty(string.Join(", ", summary.Weaknesses)) ? "None" : string.Join(", ", summary.Weaknesses);
+            teamStrengthsLabel.Text = string.IsNullOrEmpty(string.Join(", ", summary.Strengths)) ? "None" : string.Join(", ", summary.Strengths);
 
+            // MOBILE ONLY: Add Summary Card to the bottom of the scrolling list
+            if (DeviceInfo.Idiom == DeviceIdiom.Phone)
+            {
+                var mobileSummary = CreateMobileSummaryCard(summary);
+                teamMembersContainer.Children.Add(mobileSummary);
+            }
         }
         catch (Exception ex)
         {
             await DisplayAlert("Error", $"Failed to load team details: {ex.Message}", "OK");
         }
+    }
+
+    // Add this helper method to generate the Mobile Summary Card
+    private View CreateMobileSummaryCard(TeamSummary summary)
+    {
+        var frame = new Microsoft.Maui.Controls.Frame
+        {
+            Padding = 20,
+            CornerRadius = 16,
+            HasShadow = false,
+            Margin = new Thickness(0, 10, 0, 30) // Extra bottom margin for scrolling
+        };
+        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "CardBackgroundColor");
+        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
+
+        var stack = new VerticalStackLayout { Spacing = 12 };
+
+        stack.Children.Add(new Label { Text = "?? Team Analysis", FontSize = 22, FontAttributes = FontAttributes.Bold });
+        
+        var divider = new BoxView { HeightRequest = 1 };
+        divider.SetDynamicResource(BoxView.ColorProperty, "DividerColor");
+        stack.Children.Add(divider);
+
+        stack.Children.Add(new Label { Text = $"Total Score: {summary.TotalScore:N0}", FontSize = 16, FontAttributes = FontAttributes.Bold });
+
+        // Strengths
+        var strHeader = new Label { Text = "Strengths", FontSize = 14, FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 8, 0, 0) };
+        strHeader.SetDynamicResource(Label.TextColorProperty, "SuccessColor");
+        stack.Children.Add(strHeader);
+        
+        var strLabel = new Label { Text = string.Join(", ", summary.Strengths), FontSize = 13 };
+        if (string.IsNullOrEmpty(strLabel.Text)) strLabel.Text = "None";
+        stack.Children.Add(strLabel);
+
+        // Weaknesses
+        var weakHeader = new Label { Text = "Weaknesses", FontSize = 14, FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 8, 0, 0) };
+        weakHeader.SetDynamicResource(Label.TextColorProperty, "ErrorColor");
+        stack.Children.Add(weakHeader);
+        
+        var weakLabel = new Label { Text = string.Join(", ", summary.Weaknesses), FontSize = 13 };
+        if (string.IsNullOrEmpty(weakLabel.Text)) weakLabel.Text = "None";
+        stack.Children.Add(weakLabel);
+
+        frame.Content = stack;
+        return frame;
     }
 
     private Grid CreateTeamMemberView(Pokemon pokemon)
