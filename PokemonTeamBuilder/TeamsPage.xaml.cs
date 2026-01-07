@@ -1,4 +1,4 @@
-using Microsoft.Maui.Controls.Shapes;
+ï»¿using Microsoft.Maui.Controls.Shapes;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.IO;
@@ -142,6 +142,8 @@ public partial class TeamsPage : ContentPage
         emptyTeamsMessage.IsVisible = false;
         floatingAddButton.IsVisible = true;
 
+        int maxColumns = DeviceInfo.Idiom == DeviceIdiom.Phone ? 1 : 3;
+
         int row = 0;
         int col = 0;
 
@@ -154,7 +156,7 @@ public partial class TeamsPage : ContentPage
             teamGrid.Children.Add(teamCard);
 
             col++;
-            if (col >= 3)
+            if (col >= maxColumns)
             {
                 col = 0;
                 row++;
@@ -207,7 +209,7 @@ public partial class TeamsPage : ContentPage
 
         var deleteButton = new Button
         {
-            Text = "×",
+            Text = "Ã—",
             FontSize = 18,
             WidthRequest = 32,
             HeightRequest = 32,
@@ -338,7 +340,7 @@ public partial class TeamsPage : ContentPage
             if (team.Pokemon == null || team.Pokemon.Count == 0)
             {
                 emptyTeamMessage.IsVisible = true;
-                desktopSummaryFrame.IsVisible = false; // Hide summary if empty
+                desktopSummaryFrame.IsVisible = false;
 
                 totalScoreLabel.Text = "Total Score: N/A";
                 teamWeaknessesLabel.Text = "Team Weaknesses: N/A";
@@ -348,7 +350,6 @@ public partial class TeamsPage : ContentPage
             }
 
             emptyTeamMessage.IsVisible = false;
-            // Only show desktop frame if NOT on phone
             desktopSummaryFrame.IsVisible = DeviceInfo.Idiom != DeviceIdiom.Phone;
 
             var fullTeamMembers = new List<Pokemon>();
@@ -366,15 +367,12 @@ public partial class TeamsPage : ContentPage
                 }
             }
 
-            // Calculate Stats
             var summary = PokemonTeamCalculator.CalculateTeamSummary(fullTeamMembers);
 
-            // Update Standard (Desktop) Labels
             totalScoreLabel.Text = $"Total Score: {summary.TotalScore:N0}";
             teamWeaknessesLabel.Text = string.IsNullOrEmpty(string.Join(", ", summary.Weaknesses)) ? "None" : string.Join(", ", summary.Weaknesses);
             teamStrengthsLabel.Text = string.IsNullOrEmpty(string.Join(", ", summary.Strengths)) ? "None" : string.Join(", ", summary.Strengths);
 
-            // MOBILE ONLY: Add Summary Card to the bottom of the scrolling list
             if (DeviceInfo.Idiom == DeviceIdiom.Phone)
             {
                 var mobileSummary = CreateMobileSummaryCard(summary);
@@ -387,7 +385,6 @@ public partial class TeamsPage : ContentPage
         }
     }
 
-    // Add this helper method to generate the Mobile Summary Card
     private View CreateMobileSummaryCard(TeamSummary summary)
     {
         var frame = new Microsoft.Maui.Controls.Frame
@@ -395,14 +392,14 @@ public partial class TeamsPage : ContentPage
             Padding = 20,
             CornerRadius = 16,
             HasShadow = false,
-            Margin = new Thickness(0, 10, 0, 30) // Extra bottom margin for scrolling
+            Margin = new Thickness(0, 10, 0, 30)
         };
         frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "CardBackgroundColor");
         frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
 
         var stack = new VerticalStackLayout { Spacing = 12 };
 
-        stack.Children.Add(new Label { Text = "?? Team Analysis", FontSize = 22, FontAttributes = FontAttributes.Bold });
+        stack.Children.Add(new Label { Text = "ðŸ“Š Team Analysis", FontSize = 22, FontAttributes = FontAttributes.Bold });
         
         var divider = new BoxView { HeightRequest = 1 };
         divider.SetDynamicResource(BoxView.ColorProperty, "DividerColor");
@@ -432,15 +429,23 @@ public partial class TeamsPage : ContentPage
         return frame;
     }
 
-    private Grid CreateTeamMemberView(Pokemon pokemon)
+    private View CreateTeamMemberView(Pokemon pokemon)
     {
+        // Wrap in Frame for consistent styling with team summary
+        var frame = new Microsoft.Maui.Controls.Frame
+        {
+            Padding = 20,
+            CornerRadius = 16,
+            HasShadow = false,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BackgroundColorProperty, "CardBackgroundColor");
+        frame.SetDynamicResource(Microsoft.Maui.Controls.Frame.BorderColorProperty, "BorderColor");
+
         var grid = new Grid
         {
-            ColumnSpacing = 20,
-            Padding = 15,
-            Margin = new Thickness(0, 0, 0, 10)
+            ColumnSpacing = 20
         };
-        grid.SetDynamicResource(Grid.BackgroundColorProperty, "CardBackgroundColor");
 
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180, GridUnitType.Absolute) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
@@ -465,6 +470,38 @@ public partial class TeamsPage : ContentPage
             HeightRequest = 140,
             Aspect = Aspect.AspectFit
         };
+        
+        // Add tap gesture to toggle shiny
+        bool isShowingShiny = false;
+        var tapGesture = new TapGestureRecognizer();
+        tapGesture.Tapped += (s, e) =>
+        {
+            isShowingShiny = !isShowingShiny;
+            string pokemonName = pokemon.Name.ToLower();
+            string spritePath;
+
+            if (isShowingShiny)
+            {
+                spritePath = PokemonCache.GetCachedShinySprite(pokemonName);
+                if (string.IsNullOrEmpty(spritePath))
+                {
+                    // Fallback to normal sprite if shiny not available
+                    isShowingShiny = false;
+                    spritePath = PokemonCache.GetCachedSprite(pokemonName);
+                }
+            }
+            else
+            {
+                spritePath = PokemonCache.GetCachedSprite(pokemonName);
+            }
+
+            if (!string.IsNullOrEmpty(spritePath))
+            {
+                sprite.Source = spritePath;
+            }
+        };
+        sprite.GestureRecognizers.Add(tapGesture);
+        
         spriteFrame.Content = sprite;
         Grid.SetColumn(spriteFrame, 0);
 
@@ -567,7 +604,9 @@ public partial class TeamsPage : ContentPage
         grid.Children.Add(spriteFrame);
         grid.Children.Add(detailsStack);
 
-        return grid;
+        frame.Content = grid;
+        
+        return frame;
     }
 
     private async Task OnMoreDetailsClicked(string pokemonName)
@@ -589,7 +628,7 @@ public partial class TeamsPage : ContentPage
     {
         try
         {
-            bool confirm = await DisplayAlert("Remove Pokémon",
+            bool confirm = await DisplayAlert("Remove PokÃ©mon",
                 $"Remove {PokemonFormatter.FormatPokemonName(pokemonName)} from team?",
                 "Yes", "No");
 
@@ -618,7 +657,7 @@ public partial class TeamsPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"Failed to remove Pokémon: {ex.Message}", "OK");
+            await DisplayAlert("Error", $"Failed to remove PokÃ©mon: {ex.Message}", "OK");
         }
     }
 
@@ -700,7 +739,7 @@ public partial class TeamsPage : ContentPage
 
         if (currentTeam.PokemonCount >= 6)
         {
-            await DisplayAlert("Error", "Team is full (max 6 Pokémon)", "OK");
+            await DisplayAlert("Error", "Team is full (max 6 PokÃ©mon)", "OK");
             return;
         }
 
@@ -710,7 +749,7 @@ public partial class TeamsPage : ContentPage
 
             if (pokemon == null)
             {
-                await DisplayAlert("Error", "Pokémon not found!", "OK");
+                await DisplayAlert("Error", "PokÃ©mon not found!", "OK");
                 return;
             }
 
@@ -729,7 +768,7 @@ public partial class TeamsPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"Failed to add Pokémon: {ex.Message}", "OK");
+            await DisplayAlert("Error", $"Failed to add PokÃ©mon: {ex.Message}", "OK");
         }
     }
 

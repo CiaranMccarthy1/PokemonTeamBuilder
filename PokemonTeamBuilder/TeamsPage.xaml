@@ -22,7 +22,7 @@
                 <Grid x:Name="teamGrid"
                       ColumnSpacing="16"
                       RowSpacing="16"
-                      ColumnDefinitions="*,*,*"
+                      ColumnDefinitions="{OnIdiom Phone='*', Default='*,*,*'}"
                       RowDefinitions="Auto, Auto, Auto, Auto">
                 </Grid>
             </ScrollView>
@@ -79,6 +79,7 @@
               IsVisible="False"
               BackgroundColor="{DynamicResource PageBackgroundColor}"
               RowSpacing="16"
+              ColumnSpacing="20"
               Padding="20">
 
             <Grid.RowDefinitions>
@@ -111,7 +112,7 @@
                    BackgroundColor="{DynamicResource CardBackgroundColor}"
                    BorderColor="{DynamicResource BorderColor}"
                    HasShadow="False"
-                   VerticalOptions="Start">
+                   VerticalOptions="Fill">
 
                 <VerticalStackLayout x:Name="teamSummaryPanel" Spacing="16">
                     <Label Text="📊 Team Analysis" FontSize="22" FontAttributes="Bold"/>

@@ -26,14 +26,20 @@
         <Frame Grid.Row="1" Padding="16" CornerRadius="12" HasShadow="False"
                BackgroundColor="{DynamicResource CardBackgroundColor}"
                BorderColor="{DynamicResource BorderColor}">
-            <Grid ColumnSpacing="12">
+            <Grid ColumnSpacing="12" RowSpacing="{OnIdiom Phone=12, Default=0}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="{OnIdiom Phone=0, Default=Auto}" />
+                    <ColumnDefinition Width="{OnIdiom Phone=0, Default=Auto}" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="{OnIdiom Phone=Auto, Default=0}" />
+                </Grid.RowDefinitions>
 
-                <Frame Grid.Column="0" Padding="0" CornerRadius="20" HasShadow="False"
+                <!-- SearchBar takes full width on mobile -->
+                <Frame Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="{OnIdiom Phone=3, Default=1}" 
+                       Padding="0" CornerRadius="20" HasShadow="False"
                        BackgroundColor="{DynamicResource SurfaceColor}"
                        BorderColor="{DynamicResource BorderColor}">
                     <SearchBar x:Name="searchBar"
@@ -43,16 +49,23 @@
                                BackgroundColor="Transparent" />
                 </Frame>
 
-                <Button Grid.Column="1" 
+                <!-- Buttons stack on second row on mobile, side by side on desktop -->
+                <Button Grid.Row="{OnIdiom Phone=1, Default=0}" 
+                        Grid.Column="{OnIdiom Phone=0, Default=1}"
+                        Grid.ColumnSpan="{OnIdiom Phone=1, Default=1}"
                         Text="+ Add"
                         Clicked="OnAddPokemonClicked"
                         BackgroundColor="{DynamicResource AccentColor}"
+                        HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                         Padding="16,8" />
 
-                <Button Grid.Column="2"
+                <Button Grid.Row="{OnIdiom Phone=1, Default=0}"
+                        Grid.Column="{OnIdiom Phone=1, Default=2}"
+                        Grid.ColumnSpan="{OnIdiom Phone=1, Default=1}"
                         Text="Clear All"
                         Clicked="OnClearAllClicked"
                         BackgroundColor="{DynamicResource SecondaryColor}"
+                        HorizontalOptions="{OnIdiom Phone=Fill, Default=Center}"
                         Padding="16,8" />
             </Grid>
         </Frame>
@@ -78,9 +91,12 @@
                        BorderColor="{DynamicResource BorderColor}">
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Selected Pokémon" FontSize="18" FontAttributes="Bold" />
-                        <HorizontalStackLayout x:Name="selectedPokemonContainer" 
-                                               Spacing="12" 
-                                               HorizontalOptions="Center" />
+                        <!-- Wrap in ScrollView for horizontal scrolling on mobile -->
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
+                            <HorizontalStackLayout x:Name="selectedPokemonContainer" 
+                                                   Spacing="12" 
+                                                   Padding="0,0,12,0" />
+                        </ScrollView>
                         <Label x:Name="selectionHintLabel"
                                Text="Add 2-4 Pokémon to compare"
                                FontSize="14"
