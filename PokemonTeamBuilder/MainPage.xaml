@@ -281,34 +281,47 @@
                         IsVisible="True"
                         SelectionMode="Single"
                         SelectionChanged="AllPokemonCollectionView_SelectionChanged"
-                        BackgroundColor="Transparent">
+                        BackgroundColor="Transparent"
+                        Margin="0">
 
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="4" HorizontalItemSpacing="8" VerticalItemSpacing="8" />
+                <GridItemsLayout Orientation="Vertical" 
+                                 Span="2" 
+                                 HorizontalItemSpacing="8" 
+                                 VerticalItemSpacing="8" />
             </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Padding="8" CornerRadius="16" HasShadow="False"
+                    <Frame Padding="{OnIdiom Phone=6, Default=8}" 
+                           CornerRadius="16" 
+                           HasShadow="False"
                            BackgroundColor="{DynamicResource CardBackgroundColor}"
-                           BorderColor="{DynamicResource BorderColor}">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="4">
-                            <Frame WidthRequest="70" HeightRequest="70" CornerRadius="35" 
-                                   Padding="5" HasShadow="False"
+                           BorderColor="{DynamicResource BorderColor}"
+                           Margin="0">
+                        <VerticalStackLayout HorizontalOptions="Center" 
+                                           Spacing="4"
+                                           Padding="0">
+                            <Frame WidthRequest="{OnIdiom Phone=60, Default=70}" 
+                                   HeightRequest="{OnIdiom Phone=60, Default=70}" 
+                                   CornerRadius="{OnIdiom Phone=30, Default=35}" 
+                                   Padding="5" 
+                                   HasShadow="False"
                                    BackgroundColor="{DynamicResource SurfaceColor}"
                                    BorderColor="Transparent">
                                 <Image Source="{Binding SpriteUrl}"
-                                       WidthRequest="60"
-                                       HeightRequest="60"
+                                       WidthRequest="{OnIdiom Phone=50, Default=60}"
+                                       HeightRequest="{OnIdiom Phone=50, Default=60}"
                                        Aspect="AspectFit" />
                             </Frame>
                             <Label Text="{Binding Name}"
-                                   FontSize="11"
+                                   FontSize="{OnIdiom Phone=10, Default=11}"
                                    FontAttributes="Bold"
                                    HorizontalOptions="Center"
                                    HorizontalTextAlignment="Center"
                                    LineBreakMode="TailTruncation"
-                                   MaxLines="1"/>
+                                   MaxLines="1"
+                                   Margin="0"/>
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>

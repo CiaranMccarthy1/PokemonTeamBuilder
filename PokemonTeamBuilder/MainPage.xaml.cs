@@ -39,8 +39,21 @@ namespace PokemonTeamBuilder
             
             // Set responsive column span for Pokemon grid
             var gridLayout = (GridItemsLayout)allPokemonCollectionView.ItemsLayout;
-            gridLayout.Span = DeviceInfo.Idiom == DeviceIdiom.Phone ? 2 : 
-                             DeviceInfo.Idiom == DeviceIdiom.Tablet ? 3 : 4;
+            if (DeviceInfo.Idiom == DeviceIdiom.Phone)
+            {
+                gridLayout.Span = 2;
+                Debug.Log("Set mobile grid span to 2 columns");
+            }
+            else if (DeviceInfo.Idiom == DeviceIdiom.Tablet)
+            {
+                gridLayout.Span = 3;
+                Debug.Log("Set tablet grid span to 3 columns");
+            }
+            else
+            {
+                gridLayout.Span = 4;
+                Debug.Log("Set desktop grid span to 4 columns");
+            }
         }
 
         public string TeamId
@@ -114,10 +127,22 @@ namespace PokemonTeamBuilder
 
                 ClearPokemonDisplay();
 
+                Debug.Log($"isInitialized = {isInitialized}, AllPokemonNames.Count = {AllPokemonNames.Count}");
+                
                 if (!isInitialized)
                 {
+                    Debug.Log("Loading Pokemon grid (first time)");
                     await LoadAllPokemonForGrid();
                     isInitialized = true;
+                }
+                else if (AllPokemonNames.Count == 0)
+                {
+                    Debug.Log("Pokemon grid empty - reloading");
+                    await LoadAllPokemonForGrid();
+                }
+                else
+                {
+                    Debug.Log($"Grid already initialized with {AllPokemonNames.Count} Pokemon - skipping reload");
                 }
                 return; 
             }
@@ -234,16 +259,51 @@ namespace PokemonTeamBuilder
         private async Task LoadAllPokemonForGrid()
         {
             if (isLoading)
+            {
+                Debug.Log("Already loading - skipping");
                 return;
+            }
 
             isLoading = true;
+            var startTime = DateTime.Now;
 
             try
             {
+                Debug.Log($"Loading Pokemon grid - Device: {DeviceInfo.Idiom}, Platform: {DeviceInfo.Platform}");
+                Debug.Log($"pokemonDetailsGrid.IsVisible: {pokemonDetailsGrid.IsVisible}");
+                Debug.Log($"allPokemonCollectionView.IsVisible: {allPokemonCollectionView.IsVisible}");
+                
                 filterPokemonList.Clear();
                 AllPokemonNames.Clear();
                 
+                Debug.Log("Calling PokemonCache.GetPokemonIndex()...");
                 var index = await PokemonCache.GetPokemonIndex();
+                
+                if (index == null)
+                {
+                    Debug.Log("ERROR: Pokemon index is NULL!");
+                    await DisplayAlert("Error", "Pokemon index is null", "OK");
+                    return;
+                }
+                
+                Debug.Log($"Loaded {index.Count} Pokemon from index");
+                
+                if (index.Count == 0)
+                {
+                    Debug.Log("WARNING: Pokemon index is EMPTY!");
+                    await DisplayAlert("Warning", "No Pokémon found in cache. Please reload from settings.", "OK");
+                    return;
+                }
+                
+                pokemonDetailsGrid.IsVisible = false;
+                allPokemonCollectionView.IsVisible = true;
+                searchBarFrame.IsVisible = true;
+                filterFrame.IsVisible = true;
+                
+                Debug.Log("UI state set - starting to load items");
+                
+                const int batchSize = 100;
+                int processedCount = 0;
                 
                 foreach (var entry in index)
                 {
@@ -270,18 +330,47 @@ namespace PokemonTeamBuilder
                         Name = PokemonFormatter.FormatPokemonName(entry.Name),
                         PokemonId = entry.Id
                     });
+                    
+                    processedCount++;
+                    
+                    if (processedCount % batchSize == 0)
+                    {
+                        await Task.Delay(1);
+                        Debug.Log($"Processed {processedCount}/{index.Count} Pokemon...");
+                    }
                 }
 
-                allPokemonCollectionView.ItemsSource = AllPokemonNames;
+                Debug.Log($"Added {AllPokemonNames.Count} items to grid collection");
+                Debug.Log($"CollectionView IsVisible: {allPokemonCollectionView.IsVisible}");
+                Debug.Log($"Grid span: {((GridItemsLayout)allPokemonCollectionView.ItemsLayout).Span}");
+                
+                if (allPokemonCollectionView.ItemsSource != AllPokemonNames)
+                {
+                    Debug.Log("Setting ItemsSource explicitly");
+                    allPokemonCollectionView.ItemsSource = AllPokemonNames;
+                }
+                
+                var elapsed = (DateTime.Now - startTime).TotalSeconds;
+                Debug.Log($"Grid loaded with {AllPokemonNames.Count} items in {elapsed:F2} seconds");
+                
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    allPokemonCollectionView.IsVisible = false;
+                    allPokemonCollectionView.IsVisible = true;
+                    Debug.Log("Forced CollectionView refresh");
+                });
             }
             catch (Exception ex)
             {
+                Debug.LogException(ex, "Error loading Pokemon grid");
                 await DisplayAlert("Error Loading Data", $"Failed to load Pokémon: {ex.Message}", "OK");
             }
             finally
             {
                 isLoading = false;
-                    }
+                var totalTime = (DateTime.Now - startTime).TotalSeconds;
+                Debug.Log($"LoadAllPokemonForGrid completed in {totalTime:F2} seconds");
+            }
         }
 
         private async void OnSearchBarPressed(object? sender, EventArgs? e)
@@ -358,7 +447,6 @@ namespace PokemonTeamBuilder
         {
             string query = pokemon.Name.ToLower();
 
-            // Reset shiny state when displaying new Pokemon
             isShowingShiny = false;
 
             var cachedSpritePath = PokemonCache.GetCachedSprite(query);
@@ -741,7 +829,7 @@ namespace PokemonTeamBuilder
                 spritePath = PokemonCache.GetCachedShinySprite(query);
                 if (string.IsNullOrEmpty(spritePath))
                 {
-                    // Fallback to normal sprite if shiny not available
+              
                     isShowingShiny = false;
                     spritePath = PokemonCache.GetCachedSprite(query);
                 }
@@ -937,6 +1025,8 @@ namespace PokemonTeamBuilder
 
         private void ApplyFilters()
         {
+            var startTime = DateTime.Now;
+            
             var filtered = filterPokemonList.AsEnumerable();
 
             var selectedTypes = GetSelectedTypes();
@@ -1005,8 +1095,10 @@ namespace PokemonTeamBuilder
                 _ => filtered.OrderBy(p => p.Id)
             };
 
+            var filteredList = filtered.ToList();
+            
             AllPokemonNames.Clear();
-            foreach (var pokemon in filtered)
+            foreach (var pokemon in filteredList)
             {
                 AllPokemonNames.Add(new PokemonGridItem
                 {
@@ -1014,6 +1106,9 @@ namespace PokemonTeamBuilder
                     PokemonId = pokemon.Id
                 });
             }
+            
+            var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
+            Debug.Log($"Applied filters in {elapsed:F0}ms, showing {AllPokemonNames.Count}/{filterPokemonList.Count} Pokemon");
         }
 
         private void OnLevelPickerChanged(object sender, EventArgs e)
