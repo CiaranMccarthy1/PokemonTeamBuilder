@@ -329,29 +329,30 @@
                HorizontalOptions="Fill"
                VerticalOptions="Fill">
 
-            <Grid ColumnSpacing="{OnIdiom Phone=0, Default=24}" 
-                  RowSpacing="{OnIdiom Phone=24, Default=0}">
-                
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{OnIdiom Phone=*, Default=*}" />
-                    <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="{OnIdiom Phone=*, Default=*}" />
-                    <RowDefinition Height="{OnIdiom Phone=*, Default=0}" />
-                </Grid.RowDefinitions>
-
-                <!-- Left Column-->
-                <Frame Grid.Column="0" 
-                       Grid.Row="0"
-                       Padding="20" 
-                       CornerRadius="16" 
-                       HasShadow="False"
-                       BackgroundColor="{DynamicResource SurfaceColor}"
-                       BorderColor="{DynamicResource BorderColor}">
+            <ScrollView Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="{OnIdiom Phone=1, Default=2}">
+                <Grid ColumnSpacing="{OnIdiom Phone=0, Default=24}" 
+                      RowSpacing="{OnIdiom Phone=16, Default=0}"
+                      Padding="0,0,0,20">
                     
-                    <ScrollView>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{OnIdiom Phone=*, Default=*}" />
+                        <ColumnDefinition Width="{OnIdiom Phone=0, Default=*}" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="{OnIdiom Phone=Auto, Default=*}" />
+                        <RowDefinition Height="{OnIdiom Phone=Auto, Default=0}" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Left Column / Top on Mobile -->
+                    <Frame Grid.Column="0" 
+                           Grid.Row="0"
+                           Padding="20" 
+                           CornerRadius="16" 
+                           HasShadow="False"
+                           BackgroundColor="{DynamicResource SurfaceColor}"
+                           BorderColor="{DynamicResource BorderColor}">
+                        
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
 
                             <Button x:Name="backButton"
@@ -453,18 +454,16 @@
                             </HorizontalStackLayout>
 
                         </VerticalStackLayout>
-                    </ScrollView>
-                </Frame>
+                    </Frame>
 
-                <!-- Right Column-->
-                <Frame Grid.Column="{OnIdiom Phone=0, Default=1}" 
-                       Grid.Row="{OnIdiom Phone=1, Default=0}"
-                       Padding="20" 
-                       CornerRadius="16" 
-                       HasShadow="False"
-                       BackgroundColor="{DynamicResource SurfaceColor}"
-                       BorderColor="{DynamicResource BorderColor}">
-                    <ScrollView>
+                    <!-- Right Column / Bottom on Mobile -->
+                    <Frame Grid.Column="{OnIdiom Phone=0, Default=1}" 
+                           Grid.Row="{OnIdiom Phone=1, Default=0}"
+                           Padding="20" 
+                           CornerRadius="16" 
+                           HasShadow="False"
+                           BackgroundColor="{DynamicResource SurfaceColor}"
+                           BorderColor="{DynamicResource BorderColor}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Moves" 
                                    FontSize="20" 
@@ -478,9 +477,9 @@
                             <VerticalStackLayout x:Name="movesContainer" Spacing="6">
                             </VerticalStackLayout>
                         </VerticalStackLayout>
-                    </ScrollView>
-                </Frame>
-            </Grid>
+                    </Frame>
+                </Grid>
+            </ScrollView>
         </Frame>
     </Grid>
 

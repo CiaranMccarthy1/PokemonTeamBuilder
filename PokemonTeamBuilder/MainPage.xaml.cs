@@ -37,6 +37,7 @@ namespace PokemonTeamBuilder
             tapGesture.Tapped += OnSpriteTapped;
             pokemonSprite.GestureRecognizers.Add(tapGesture);
             
+            // Set responsive column span for Pokemon grid
             var gridLayout = (GridItemsLayout)allPokemonCollectionView.ItemsLayout;
             gridLayout.Span = DeviceInfo.Idiom == DeviceIdiom.Phone ? 2 : 
                              DeviceInfo.Idiom == DeviceIdiom.Tablet ? 3 : 4;
@@ -356,6 +357,8 @@ namespace PokemonTeamBuilder
         private async Task DisplayPokemon(Pokemon pokemon, bool isFavourite)
         {
             string query = pokemon.Name.ToLower();
+
+            // Reset shiny state when displaying new Pokemon
             isShowingShiny = false;
 
             var cachedSpritePath = PokemonCache.GetCachedSprite(query);
@@ -738,6 +741,7 @@ namespace PokemonTeamBuilder
                 spritePath = PokemonCache.GetCachedShinySprite(query);
                 if (string.IsNullOrEmpty(spritePath))
                 {
+                    // Fallback to normal sprite if shiny not available
                     isShowingShiny = false;
                     spritePath = PokemonCache.GetCachedSprite(query);
                 }
@@ -1023,6 +1027,7 @@ namespace PokemonTeamBuilder
                 UpdateStatsBarsForLevel(currentDisplayedPokemon, level);
             }
         }
+        
         private void UpdateStatsBarsForLevel(Pokemon pokemon, int level)
         {
             statsContainer.Children.Clear();
