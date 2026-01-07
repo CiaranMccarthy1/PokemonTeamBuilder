@@ -42,6 +42,18 @@ public partial class TeamsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (AppShell.IsNavigatingFromFlyout)
+        {
+            Debug.Log("Flyout navigation to TeamsPage detected - resetting state");
+            AppShell.IsNavigatingFromFlyout = false; 
+
+            pendingTeamId = null;
+            currentTeam = null;
+            selectedPokemon = string.Empty;
+
+            teamDetailView.IsVisible = false;
+            teamsListView.IsVisible = true;
+        }
         LoadTeams();
 
         if (!teamDetailView.IsVisible)

@@ -15,13 +15,13 @@
             var target = e.Target.Location.ToString();
             var source = e.Source;
             Debug.Log($"Shell Navigating: Source={source}, Target={target}");
-            
-            if ((source == ShellNavigationSource.ShellItemChanged || source == ShellNavigationSource.ShellContentChanged) &&    
-                (target.Contains("MainPage") || target.Contains("SearchRoute")) &&
-                !target.Contains("?"))
+
+            if ((source == ShellNavigationSource.ShellItemChanged || source == ShellNavigationSource.ShellContentChanged) &&
+                    (target.Contains("MainPage") || target.Contains("SearchRoute") || target.Contains("TeamsPage")) &&
+                    !target.Contains("?"))
             {
                 IsNavigatingFromFlyout = true;
-                Debug.Log("Flyout navigation to MainPage detected - clear params");
+                Debug.Log("Flyout navigation detected - clear params");
             }
             else
             {
