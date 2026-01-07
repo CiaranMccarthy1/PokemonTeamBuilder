@@ -155,6 +155,7 @@ namespace PokemonTeamBuilder
         {
             try
             {
+                // Download normal sprite
                 string spriteUrl = pokemon.Sprites?.FrontDefault;
 
                 if (!string.IsNullOrEmpty(spriteUrl))
@@ -166,6 +167,20 @@ namespace PokemonTeamBuilder
 
                     var namePath = Path.Combine(spritesFolder, $"{pokemon.Name.ToLower()}.png");
                     await File.WriteAllBytesAsync(namePath, imageBytes);
+                }
+                
+                // Download shiny sprite
+                string shinySpriteUrl = pokemon.Sprites?.FrontShiny;
+                
+                if (!string.IsNullOrEmpty(shinySpriteUrl))
+                {
+                    var shinyImageBytes = await httpClient.GetByteArrayAsync(shinySpriteUrl);
+                    
+                    var shinySpritePath = Path.Combine(spritesFolder, $"{pokemon.Id}_shiny.png");
+                    await File.WriteAllBytesAsync(shinySpritePath, shinyImageBytes);
+                    
+                    var shinyNamePath = Path.Combine(spritesFolder, $"{pokemon.Name.ToLower()}_shiny.png");
+                    await File.WriteAllBytesAsync(shinyNamePath, shinyImageBytes);
                 }
             }
             catch (Exception ex)

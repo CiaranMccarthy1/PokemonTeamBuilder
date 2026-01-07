@@ -222,6 +222,17 @@ namespace PokemonTeamBuilder
             }
             return null;
         }
+        
+        public static string GetCachedShinySprite(string name)
+        {
+            InitializeFolders();
+            var shinySpritePath = Path.Combine(spritesFolder, $"{name.ToLower()}_shiny.png");
+            if (File.Exists(shinySpritePath))
+            {
+                return shinySpritePath;
+            }
+            return null;
+        }
 
         public static async Task<bool> IsFavourite(string pokemonName)
         {
@@ -260,6 +271,17 @@ namespace PokemonTeamBuilder
             if (File.Exists(spritePath))
             { 
                 return spritePath;
+            }
+            return null;
+        }
+        
+        public static string GetCachedShinySpriteById(int id)
+        {
+            InitializeFolders();
+            var shinySpritePath = Path.Combine(spritesFolder, $"{id}_shiny.png");
+            if (File.Exists(shinySpritePath))
+            {
+                return shinySpritePath;
             }
             return null;
         }
